@@ -28,9 +28,13 @@ boolean checkPixel(color temp, checkMode mode, float lowerLimit, float upperLimi
    return (check >= lowerLimit && check <= upperLimit);
 }
 
-//boolean comparePixels(color col1, color col2, checkMode mode) {
-    
-//}
+boolean comparePixels(color col1, color col2, checkMode mode, boolean ascending) {
+  if (ascending) {
+    return getBrightness(col1, mode) >= getBrightness(col2, mode);
+  } else {
+    return getBrightness(col1, mode) <= getBrightness(col2, mode);
+  }
+}
 
 
 float getBrightness(color test, checkMode mode) {

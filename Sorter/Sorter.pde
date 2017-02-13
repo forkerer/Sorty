@@ -1,12 +1,22 @@
-import java.io.File;
+//import java.io.File;
 PImage selected;
 sceneContainer Scene;
+int y1 = 0,y2 = 0,x1 = 0, x2 = 0;
+ArrayList<PVector> selectedArea;
+boolean selector = false;
+float newWidth;
+
+
 
 void setup() {
-  size(800, 600);
-  frameRate(10);
-  surface.setResizable(true);
-
+  //size(800, 600);
+  frameRate(30);
+  //surface.setResizable(true);
+  fullScreen();
+  textSize(32);
+  
+  selectedArea = new ArrayList<PVector>();
+  
   //Image selector
   selectInput("Select a file to process:", "fileSelected");
   while (selected == null) {
@@ -14,20 +24,28 @@ void setup() {
   }
   
   Scene = new sceneContainer(selected, 0, 1, checkMode.AVERAGE);
-  surface.setSize(Scene.image.width/2, Scene.image.height/2);
-  //surface.setSize(0, constrain(Scene.image.height*2,displayHeight));
+  newWidth = ((float)Scene.image.width / (float)Scene.image.height) * height;
 }
 
 void draw() {
-  
+  background(255);
   Scene.display();
-  textSize(32);
+  line(100,y1,100,y2);
+  if (!selectedArea.isEmpty()) {
+    for(int i = 0; i <selectedArea.size()-1;i++) {
+       line(calcScreenX((int)selectedArea.get(i).x) ,calcScreenY((int)selectedArea.get(i).y),calcScreenX((int)selectedArea.get(i+1).x),calcScreenY((int)selectedArea.get(i+1).y));
+    }
+    line(calcScreenX((int)selectedArea.get(selectedArea.size()-1).x),calcScreenY((int)selectedArea.get(selectedArea.size()-1).y),calcScreenX((int)selectedArea.get(0).x),calcScreenY((int)selectedArea.get(0).y));
+  }
+  
   fill(0);
-  text("lower: "+nf(Scene.lowerLimit,1,2),10,32);
-  text("upper: "+nf(Scene.upperLimit,1,2),10,64);
-  text("Mode: "+ Scene.brightnessCheckMode.name(),10,96);
-  text("Preview: "+Scene.showPreview,10,128);
-  //Scene.image.save("after.jpg");
+  outlineText("lower: "+nf(Scene.lowerLimit,1,2),10,32);
+  outlineText("upper: "+nf(Scene.upperLimit,1,2),10,64);
+  outlineText("Selection mode: "+ Scene.pixelCheckMode.name(),10,96);
+  outlineText("Sorting mode: "+Scene.sortingMode.name(),10,128);
+  outlineText("Preview: "+Scene.showPreview,10,160);
+  outlineText("y: "+mouseY+" : " + (int)((float)mouseY*((float)Scene.image.height/ (float)height)),10,192);
+  outlineText("mouseX: " + mouseX + " : " + calcScreenX(calcImageX(mouseX)),10,224);
 }
 
 void fileSelected(File selection) {
@@ -39,17 +57,44 @@ void fileSelected(File selection) {
   }
 }
 
-/*
+void outlineText(String message, int x, int y) {
+   fill(0);
+   text(message,x-1,y);
+   text(message,x+1,y);
+   text(message,x,y-1);
+   text(message,x,y+1);
+   fill(255);
+   text(message,x,y);
+}
+
 public void mousePressed()
     {
-        loadPixels();
-        color temp = color(red(pixels[mouseX + mouseY * width]),green(pixels[mouseX + mouseY * width]),blue(pixels[mouseX + mouseY * width]));
-       // println("Red: "+red(pixels[mouseX + mouseY * width]));
-       // println("Green: "+green(pixels[mouseX + mouseY * width]));
-        println(getBrightness(temp,Scene.brightnessCheckMode));
-        println(hue(temp)/360);
-        println();
-    } */
+        x1 = (int)((float)mouseX*((float)Scene.image.width/ (float)width));
+        if (selector == true) {
+          selectedArea.add(new PVector(calcImageX(mouseX),((float)mouseY*((float)Scene.image.height/ (float)height))));
+        }
+    } 
+    
+public void mouseReleased()
+    {
+        x2 = (int)((float)mouseX*((float)Scene.image.width/ (float)width));
+    } 
+
+int calcImageX(int x) {
+  //float newWidth = ((float)Scene.image.width / (float)Scene.image.height) * height;
+  float result = (x-(width-newWidth)/2)*((float)Scene.image.width/newWidth);
+  return (int)result;
+}
+
+int calcScreenX(int x) {
+  //float newWidth = ((float)Scene.image.width / (float)Scene.image.height) * height;
+  float result = (x* (newWidth / (float)Scene.image.width))+((width-newWidth)/2);
+  return (int)result;
+}
+
+int calcScreenY(int y) {
+  return (int)(y*((float)height/ (float)Scene.image.height));
+}
     
 public void keyPressed() {
    if (key == 'h') {
@@ -84,11 +129,24 @@ public void keyPressed() {
    if (key == 'm') {
       checkMode[] modes = checkMode.values();
       for(int i = 0; i<modes.length;i++) {
-         if (modes[i] == Scene.brightnessCheckMode) {
+         if (modes[i] == Scene.pixelCheckMode) {
             if (i == modes.length-1) {
-               Scene.setMode(modes[0]); 
+               Scene.setCheckMode(modes[0]); 
             } else {
-               Scene.setMode(modes[i+1]); 
+               Scene.setCheckMode(modes[i+1]); 
+            }
+            break;
+         }
+      }
+   }
+   if (key == 'n') {
+      checkMode[] modes = checkMode.values();
+      for(int i = 0; i<modes.length;i++) {
+         if (modes[i] == Scene.sortingMode) {
+            if (i == modes.length-1) {
+               Scene.setSortingMode(modes[0]); 
+            } else {
+               Scene.setSortingMode(modes[i+1]); 
             }
             break;
          }
@@ -99,5 +157,32 @@ public void keyPressed() {
    }
    if (key == 't') {
       Scene.setPreview();
+   }
+   if (keyCode == '1') {
+      y1= (int)((float)mouseY*((float)Scene.image.height/ (float)height));
+      if (y1 > y2) {
+        int temp = y1;
+        y1 = y2;
+        y2 = temp;
+      }
+   }
+   if (keyCode == '2') {
+      y2= (int)((float)mouseY*((float)Scene.image.height/ (float)height));
+      if (y1 > y2) {
+        int temp = y1;
+        y1 = y2;
+        y2 = temp;
+      }
+   }
+   if (key == 'x') {
+      Scene.offsetX(x2-x1,y1,y2);
+      println(y1," : ", y2);
+   }
+   
+   if (key == 'u') {
+      selector = !selector;
+   }
+   if (key == 'y') {
+      Scene.debugSelection(selectedArea);
    }
 }

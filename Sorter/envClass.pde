@@ -3,7 +3,9 @@ class sceneContainer {
   PImage backup;
   float upperLimit;
   float lowerLimit;
-  checkMode brightnessCheckMode;
+  checkMode pixelCheckMode;
+  checkMode sortingMode;
+  boolean ascending;
 
   color[] sortTab; //Used for iterative MergeSort
   IntList verHelper; //Used for vertical sorting, because i can't just treat it like a row
@@ -16,19 +18,23 @@ class sceneContainer {
     preview = img.get();    
     lowerLimit = lower;
     upperLimit = upper;
-    brightnessCheckMode = mode;
+    pixelCheckMode = mode;
     verHelper = new IntList(); 
     sortTab = new color[image.pixels.length]; 
     showPreview = false;
     calcPreview();
+    ascending = true;
+    sortingMode = mode;
   }
 
   void display() {
     fill(0);
+    
+    float newWidth = ((float)image.width / (float)image.height) * height;
     if (showPreview == true) { 
-      image(this.preview, 0, 0, width, height);
+      image(this.preview, (width-newWidth)/2, 0, newWidth, height);
     } else {
-     image(this.image, 0, 0, width, height); 
+     image(this.image, (width-newWidth)/2, 0, newWidth, height); 
     }
   }
   // HELPER FUNCTIONS
@@ -50,8 +56,14 @@ class sceneContainer {
     calcPreview();
   }
 
-  void setMode(checkMode mode) {
-    brightnessCheckMode = mode;
+  void setCheckMode(checkMode mode) {
+    pixelCheckMode = mode;
+    preview=image.get();
+    calcPreview();
+  }
+  
+  void setSortingMode(checkMode mode) {
+    sortingMode = mode;
     preview=image.get();
     calcPreview();
   }
@@ -66,12 +78,30 @@ class sceneContainer {
   void setPreview() {
     showPreview = !showPreview;
   }
+  
+  void offsetX(int offset,int start, int end) {
+    image.loadPixels();
+    color[] tempTab = new color[image.pixels.length];
+    for(int i = start; i<end;i++) {
+       for(int j = 0; j<image.width; j++) {
+          int index = (j+offset)%image.width;
+          tempTab[index+i*image.width] = image.pixels[j+i*image.width];
+       }
+    }
+    for(int i = start; i < end; i++) {
+       for (int j = 0; j<image.width;j++) {
+          image.pixels[j+i*image.width] = tempTab[j+i*image.width];
+       }
+    }
+    image.updatePixels();
+    preview=image.get();
+    calcPreview();
+  }
 
-
-  void calcPreview() {
-    for (int i = 0; i<preview.height; i++) {
+  void debugSelection(ArrayList<PVector> polygon) {
+      for (int i = 0; i<preview.height; i++) {
       for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
-        if (checkPixel(preview.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) {
+        if (pointIsInPoly(j-i*preview.width, i, polygon)) {
           preview.pixels[j] = 0xFFFFFF;
         } else {
           preview.pixels[j] = 0x000000;
@@ -80,27 +110,28 @@ class sceneContainer {
     }
     preview.updatePixels();
   }
-  //Test brightness check
-  void Debug() {
-    for (int i = 0; i<image.height; i++) {
-      for (int j = i*image.width; j<(i+1)*image.width; j++) {
-        if (checkPixel(image.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) {
-          image.pixels[j] = 0xFFFFFF;
+
+  void calcPreview() {
+    for (int i = 0; i<preview.height; i++) {
+      for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
+        if (checkPixel(preview.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+          preview.pixels[j] = 0xFFFFFF;
         } else {
-          image.pixels[j] = 0x000000;
+          preview.pixels[j] = 0x000000;
         }
       }
     }
+    preview.updatePixels();
   }
 
   void sortHorizontal() {
     image.loadPixels();
     for (int i = 0; i<image.height; i++) {
       for (int j = i*image.width; j<(i+1)*image.width; j++) {
-        if (checkPixel(image.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
+        if (checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
           int from = j;
           int to = from;
-          while (to<(i+1)*image.width && checkPixel(image.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) {
+          while (to<(i+1)*image.width && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
             to++;
             j++;
           }
@@ -117,11 +148,11 @@ class sceneContainer {
     image.loadPixels();
     for (int i = 0; i<image.width; i++) {
       for (int j = i; j < image.width*image.height; j+=image.width) {
-        if (checkPixel(image.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
+        if (checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
           verHelper.clear();
           int from = j;
           int to = from;
-          while (to<image.width*image.height && checkPixel(image.pixels[j], brightnessCheckMode, lowerLimit, upperLimit)) {
+          while (to<image.width*image.height && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
             verHelper.append(image.pixels[j]);
             to+=image.width;
             j+=image.width;
@@ -158,7 +189,8 @@ class sceneContainer {
         i = left;
         j = rght;
         while (i < rght && j < rend) {
-          if (getBrightness(tab[i], brightnessCheckMode) >= getBrightness(tab[j], brightnessCheckMode)) {
+          //if (getBrightness(tab[i], pixelCheckMode) >= getBrightness(tab[j], pixelCheckMode)) {
+          if (comparePixels(tab[i],tab[j],sortingMode,ascending)) {
             //  if (saturation(tab[i]) >= saturation(tab[j])) {
             sortTab[m] = tab[i];
             i++;
@@ -185,10 +217,3 @@ class sceneContainer {
     }
   }
 }
-
-
-
-//CALCULATING PIXEL BRIGHTNESS
-//float getBrightness(color test) {
-//  return 0.587*((float)green(test)/255) + 0.299*((float)red(test)/255) + 0.114*((float)blue(test)/255);
-//}
