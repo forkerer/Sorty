@@ -1,5 +1,5 @@
 enum checkMode {
-  LUMA, AVERAGE, HUE, SATURATION
+  LUMA, AVERAGE, HUE, SATURATION, RED, GREEN, BLUE
 }
 
 boolean checkPixel(color temp, checkMode mode, float lowerLimit, float upperLimit) {
@@ -16,16 +16,22 @@ boolean comparePixels(color col1, color col2, checkMode mode, boolean ascending)
 }
 
 
-float getBrightness(color test, checkMode mode) {
+float getBrightness(color col, checkMode mode) {
   
   switch(mode) {
-     case LUMA: return  0.587*(((float)(green(test))/255)) + 0.299 *(((float)(red(test))/255)) + 0.114*(((float)(blue(test))/255));
+     case LUMA: return  0.587*(((float)(green(col))/255)) + 0.299 *(((float)(red(col))/255)) + 0.114*(((float)(blue(col))/255));
      
-     case AVERAGE: return (((float)(green(test)+red(test)+blue(test)))/255)/3;
+     case AVERAGE: return (((float)(green(col)+red(col)+blue(col)))/255)/3;
      
-     case HUE: return hue(test)/360;
+     case HUE: return hue(col)/360;
      
-     case SATURATION: return saturation(test)/255;
+     case SATURATION: return saturation(col)/255;
+     
+     case RED: return (float)red(col)/255;
+     
+     case GREEN: return (float)green(col)/255;
+     
+     case BLUE: return (float)blue(col)/255;
      
      default:
        print("Something wrong in getBrightness, returning 0");

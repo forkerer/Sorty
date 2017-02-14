@@ -46,10 +46,17 @@ class sceneContainer {
     } else {
       texture(this.image);
     }
-    vertex((width-newWidth)/2, 0, 0, 0);
-    vertex((width-newWidth)/2+newWidth, 0, image.width, 0);
-    vertex((width-newWidth)/2+newWidth, height, image.width, image.height);
-    vertex((width-newWidth)/2, height, 0, image.height);
+    if (wideCalc == false) {
+      vertex((width-newWidth)/2, 0, 0, 0);
+      vertex((width-newWidth)/2+newWidth, 0, image.width, 0);
+      vertex((width-newWidth)/2+newWidth, height, image.width, image.height);
+      vertex((width-newWidth)/2, height, 0, image.height);
+    } else {
+      vertex(0, (height-newHeight)/2, 0, 0);
+      vertex(width, (height-newHeight)/2, image.width, 0);
+      vertex(width, (height-newHeight)/2 + newHeight, image.width, image.height);
+      vertex(0, (height-newHeight)/2 + newHeight, 0, image.height);
+    }
     endShape();
   }
   // HELPER FUNCTIONS
@@ -58,17 +65,17 @@ class sceneContainer {
     image.loadPixels();
     sortTab = new color[image.pixels.length];
   }
-  
+
   void ascDescChange(boolean value) {
-     ascending = value; 
+    ascending = value;
   }
-  
+
   float getLowerLimit() {
-     return lowerLimit;
+    return lowerLimit;
   }
-  
+
   float getUpperLimit() {
-     return upperLimit;
+    return upperLimit;
   }
 
   void setLowerLimit(float x) {
