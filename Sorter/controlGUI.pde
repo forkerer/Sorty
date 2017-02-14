@@ -2,7 +2,7 @@ import controlP5.*;
 
 checkMode[] modes = checkMode.values();
 
-class controlGUI {
+public class controlGUI {
   //checkMode[] modes;
   ControlP5 cp5;
   boolean showMenu;
@@ -13,12 +13,15 @@ class controlGUI {
   DropdownList sortMode;
   Toggle AscDesc;
   Button sortHorizontal;
-  Button sortVertical;
+  Button sortVertical;  
+  Button chgSelection;
+  Button delSelection;
+  RadioButton workSpace;
 
   controlGUI(ControlP5 control) {
     cp5 = control;
     showMenu = true;
-    
+
     lowerLimitSlider = cp5.addSlider("lowerLimit")
       .setPosition(10, 50)
       .setRange(0, 1)
@@ -32,6 +35,7 @@ class controlGUI {
       .setRange(0, 1)
       .setSize(200, 50)
       .setTriggerEvent(Slider.RELEASE)
+      .setValue(1)
       .plugTo(this);
     upperLimitSlider.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
@@ -47,7 +51,7 @@ class controlGUI {
       .setMode(ControlP5.SWITCH)
       .setValue(true)
       .plugTo(this);
-      AscDesc.getCaptionLabel().set("Ascending                  Descending");
+    AscDesc.getCaptionLabel().set("Ascending                  Descending");
 
     checkMode = cp5.addDropdownList("checkMode")
       .setPosition(10, 275)
@@ -62,21 +66,52 @@ class controlGUI {
       .setType(DropdownList.LIST)
       .plugTo(this);
     customize(sortMode);
-    
+
     sortHorizontal = cp5.addButton("sortHor")
-      .setPosition(10,470)
-      .setSize(90,50)
+      .setPosition(10, 470)
+      .setSize(90, 50)
       .plugTo(this);
     sortHorizontal.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     sortHorizontal.getCaptionLabel().set("Sort  Horizontally");
-    
+
     sortVertical = cp5.addButton("sortVer")
-      .setPosition(120,470)
-      .setSize(90,50)
+      .setPosition(120, 470)
+      .setSize(90, 50)
       .plugTo(this);
     sortVertical.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     sortVertical.getCaptionLabel().set("Sort  Vertically");
+    
+    chgSelection = cp5.addButton("chgSel")
+      .setPosition(10,570)
+      .setSize(90,50)
+      .plugTo(this);
+    chgSelection.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    chgSelection.getCaptionLabel().set("Add/Change  Selection");
+    
+    delSelection = cp5.addButton("delSel")
+      .setPosition(120,570)
+      .setSize(90,50)
+      .plugTo(this);
+    delSelection.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    delSelection.getCaptionLabel().set("Delete  Selection");
+    
+    workSpace = cp5.addRadioButton("workSpc") 
+      .setPosition(10,645)
+      .setSize(50,50)
+      .setItemsPerRow(3)
+      .setSpacingColumn(25)
+      .setSpacingRow(10)
+      .setNoneSelectedAllowed(false)
+      .addItem("All",0)
+      .addItem("All - Selection",1)
+      .addItem("Selection",2)
+      .plugTo(this);
+    for(Toggle t: workSpace.getItems()) {
+       t.getCaptionLabel().align(ControlP5.CENTER, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    }
   }
+
+
 
   void customize(DropdownList dd) {
     dd.setItemHeight(40);
@@ -106,37 +141,50 @@ class controlGUI {
   void preview() {
     Scene.setPreview();
   }
-  
+
   void AscendingDescending(boolean theFlag) {
-       Scene.ascDescChange(theFlag);
+    Scene.ascDescChange(theFlag);
   }
-  
+
   void sortHor() {
-    if (selector) {
+    if (Scene.workSpace != workSpc.ALL) {
       Scene.sortSelectionHorizontal();
     } else {
       Scene.sortHorizontal();
     }
   }
-  
+
   void sortVer() {
-     if (selector) {
+    if (Scene.workSpace != workSpc.ALL) {
       Scene.sortSelectionVertical();
     } else {
       Scene.sortVertical();
     }
   }
+  
+  void chgSel() {
+    selector = !selector;
+  }
+  
+  void delSel() {
+    selectedArea.clear();
+    selector = false;
+    Scene.processPreview();
+  }
+  
+  public void workSpc(int num) {
+    workSpc[] spaces = workSpc.values();
+    Scene.setWorkSpace(spaces[num]);
+    Scene.processPreview();
+  }
 
   void controlEvent(ControlEvent theEvent) {
     if (theEvent.isController()) {
-      //outlineText(theEvent.getController().getName(),300,50);
       if (theEvent.getController().getName() == "checkMode") {
-        outlineText(theEvent.getController().getName(), 300, 50);
         Scene.setCheckMode(modes[(int)theEvent.getController().getValue()]);
         checkMode.setOpen(true);
       }
       if (theEvent.getController().getName() == "sortMode") {
-        outlineText(theEvent.getController().getName(), 300, 50);
         Scene.setSortingMode(modes[(int)theEvent.getController().getValue()]);
         sortMode.setOpen(true);
       }

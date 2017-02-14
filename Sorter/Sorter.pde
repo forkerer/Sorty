@@ -133,7 +133,7 @@ public void mousePressed()
       } else {
         selectedArea.add(new PVector(((float)mouseX * ((float)Scene.image.width / (float)width)), calcImageY(mouseY)));
       }
-      Scene.calcSelectionPreview(selectedArea);
+      Scene.processPreview();
     }
   }
 } 
@@ -175,7 +175,7 @@ public void keyPressed() {
   
 
    if (key == 'r') {
-   Scene.resetImage();
+   Scene.processReset();
    }
 
 

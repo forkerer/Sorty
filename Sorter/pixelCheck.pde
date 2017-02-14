@@ -2,6 +2,10 @@ enum checkMode {
   LUMA, AVERAGE, HUE, SATURATION, RED, GREEN, BLUE
 }
 
+enum workSpc {
+  ALL,ALLNOSELECTION,SELECTION
+}
+
 boolean checkPixel(color temp, checkMode mode, float lowerLimit, float upperLimit) {
    float check = getBrightness(temp, mode);
    return (check >= lowerLimit && check <= upperLimit);

@@ -6,6 +6,7 @@ class sceneContainer {
   checkMode pixelCheckMode;
   checkMode sortingMode;
   boolean ascending;
+  workSpc workSpace;
 
   color[] sortTab; //Used for iterative MergeSort
   IntList verHelper; //Used for vertical sorting, because i can't just treat it like a row
@@ -25,6 +26,7 @@ class sceneContainer {
     calcPreview();
     ascending = true;
     sortingMode = mode;
+    workSpace = workSpc.ALL;
   }
   /*
   void display() {
@@ -69,6 +71,10 @@ class sceneContainer {
   void ascDescChange(boolean value) {
     ascending = value;
   }
+  
+  void setWorkSpace(workSpc space) {
+     this.workSpace = space;
+  }
 
   float getLowerLimit() {
     return lowerLimit;
@@ -81,56 +87,106 @@ class sceneContainer {
   void setLowerLimit(float x) {
     lowerLimit = constrain(x, 0, upperLimit);
     preview=image.get();
-    if (!selector) {
-      calcPreview();
-    } else {
-      calcSelectionPreview(selectedArea);
-    }
+    processPreview();
   }
 
   void setUpperLimit(float x) {
     upperLimit = constrain(x, lowerLimit, 1);
     preview=image.get();
-    if (!selector) {
-      calcPreview();
-    } else {
-      calcSelectionPreview(selectedArea);
-    }
+    processPreview();
   }
 
   void setCheckMode(checkMode mode) {
     pixelCheckMode = mode;
     preview=image.get();
-    if (!selector) {
-      calcPreview();
-    } else {
-      calcSelectionPreview(selectedArea);
-    }
+    processPreview();
   }
 
   void setSortingMode(checkMode mode) {
     sortingMode = mode;
     preview=image.get();
-    if (!selector) {
-      calcPreview();
-    } else {
-      calcSelectionPreview(selectedArea);
-    }
+    processPreview();
   }
 
   void resetImage() {
     image = backup.get();
     image.updatePixels();
     preview=image.get();
-    if (!selector) {
-      calcPreview();
-    } else {
-      calcSelectionPreview(selectedArea);
+    processPreview();
+  }
+  
+  void resetImageSelection(ArrayList<PVector> polygon) {
+    for (int i = 0; i<preview.height; i++) {
+      for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
+        if (pointIsInPoly(j-i*preview.width, i, polygon) && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+          image.pixels[j] = backup.pixels[j];
+        }
+      }
     }
+    image.updatePixels();
+    preview=image.get();
+    processPreview();
+  }
+  
+  void resetImageNoSelection(ArrayList<PVector> polygon) {
+    for (int i = 0; i<preview.height; i++) {
+      for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
+        if (!pointIsInPoly(j-i*preview.width, i, polygon) && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+          image.pixels[j] = backup.pixels[j];
+        }
+      }
+    }
+    image.updatePixels();
+    preview=image.get();
+    processPreview();
   }
 
   void setPreview() {
     showPreview = !showPreview;
+  }
+  
+  void processPreview() {
+    switch(workSpace) {
+       case ALL: 
+         this.calcPreview();
+         break;
+       case SELECTION:
+         if(!selectedArea.isEmpty()) {
+         this.calcSelectionPreview(selectedArea);
+         } else {
+         this.calcPreview();
+         }
+         break;
+       case ALLNOSELECTION:
+         if(!selectedArea.isEmpty()) {
+         this.calcNoSelectionPreview(selectedArea);
+         } else {
+         this.calcPreview();
+         }
+         break;
+    }
+  }
+  
+  void processReset() {
+    switch(workSpace) {
+      case ALL: 
+        resetImage();
+        break;
+      case SELECTION:
+         if(!selectedArea.isEmpty()) {
+         this.resetImageSelection(selectedArea);
+         } else {
+         this.resetImage();
+         }
+         break;
+       case ALLNOSELECTION:
+         if(!selectedArea.isEmpty()) {
+         this.resetImageNoSelection(selectedArea);
+         } else {
+         this.resetImage();
+         }
+         break;
+    }
   }
 
   void offsetX(int offset, int start, int end) {
@@ -150,6 +206,19 @@ class sceneContainer {
     image.updatePixels();
     preview=image.get();
     calcPreview();
+  }
+
+  void calcNoSelectionPreview(ArrayList<PVector> polygon) {
+    for (int i = 0; i<preview.height; i++) {
+      for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
+        if (!pointIsInPoly(j-i*preview.width, i, polygon) && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+          preview.pixels[j] = 0xFFFFFF;
+        } else {
+          preview.pixels[j] = 0x000000;
+        }
+      }
+    }
+    preview.updatePixels();
   }
 
   void calcSelectionPreview(ArrayList<PVector> polygon) {
