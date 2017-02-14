@@ -15,13 +15,7 @@ boolean pointIsInPoly(int x, int y, ArrayList<PVector> polygon) {
     }
 
     int j = polygon.size() - 1;
-    /*
-    for (i, j; i < polygon.size(); j = i++) {
-        if ( (polygon[i].y > p.y) != (polygon[j].y > p.y) &&
-                p.x < (polygon[j].x - polygon[i].x) * (p.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x ) {
-            isInside = !isInside;
-        }
-    } */
+
     for(int i = 0; i<polygon.size();i++) {
       if ( (polygon.get(i).y > y) != (polygon.get(j).y > y) &&
         x < (polygon.get(j).x - polygon.get(i).x) * (y-polygon.get(i).y)/(polygon.get(j).y - polygon.get(i).y) + polygon.get(i).x ) {

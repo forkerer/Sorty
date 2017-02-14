@@ -26,16 +26,31 @@ class sceneContainer {
     ascending = true;
     sortingMode = mode;
   }
+  /*
+  void display() {
+   fill(0);
+   
+   //float newWidth = ((float)image.width / (float)image.height) * height;
+   if (showPreview == true) { 
+   image(this.preview, (width-newWidth)/2, 0, newWidth, height);
+   } else {
+   image(this.image, (width-newWidth)/2, 0, newWidth, height); 
+   }*/
 
   void display() {
     fill(0);
-    
-    float newWidth = ((float)image.width / (float)image.height) * height;
+
+    beginShape();
     if (showPreview == true) { 
-      image(this.preview, (width-newWidth)/2, 0, newWidth, height);
+      texture(this.preview);
     } else {
-     image(this.image, (width-newWidth)/2, 0, newWidth, height); 
+      texture(this.image);
     }
+    vertex((width-newWidth)/2, 0, 0, 0);
+    vertex((width-newWidth)/2+newWidth, 0, image.width, 0);
+    vertex((width-newWidth)/2+newWidth, height, image.width, image.height);
+    vertex((width-newWidth)/2, height, 0, image.height);
+    endShape();
   }
   // HELPER FUNCTIONS
   void setSize(int x, int y) {
@@ -43,65 +58,93 @@ class sceneContainer {
     image.loadPixels();
     sortTab = new color[image.pixels.length];
   }
+  
+  float getLowerLimit() {
+     return lowerLimit;
+  }
+  
+  float getUpperLimit() {
+     return upperLimit;
+  }
 
   void setLowerLimit(float x) {
     lowerLimit = constrain(x, 0, upperLimit);
     preview=image.get();
-    calcPreview();
+    if (!selector) {
+      calcPreview();
+    } else {
+      calcSelectionPreview(selectedArea);
+    }
   }
 
   void setUpperLimit(float x) {
     upperLimit = constrain(x, lowerLimit, 1);
     preview=image.get();
-    calcPreview();
+    if (!selector) {
+      calcPreview();
+    } else {
+      calcSelectionPreview(selectedArea);
+    }
   }
 
   void setCheckMode(checkMode mode) {
     pixelCheckMode = mode;
     preview=image.get();
-    calcPreview();
+    if (!selector) {
+      calcPreview();
+    } else {
+      calcSelectionPreview(selectedArea);
+    }
   }
-  
+
   void setSortingMode(checkMode mode) {
     sortingMode = mode;
     preview=image.get();
-    calcPreview();
+    if (!selector) {
+      calcPreview();
+    } else {
+      calcSelectionPreview(selectedArea);
+    }
   }
 
   void resetImage() {
     image = backup.get();
     image.updatePixels();
     preview=image.get();
-    calcPreview();
+    if (!selector) {
+      calcPreview();
+    } else {
+      calcSelectionPreview(selectedArea);
+    }
   }
-  
+
   void setPreview() {
     showPreview = !showPreview;
   }
-  
-  void offsetX(int offset,int start, int end) {
+
+  void offsetX(int offset, int start, int end) {
     image.loadPixels();
     color[] tempTab = new color[image.pixels.length];
-    for(int i = start; i<end;i++) {
-       for(int j = 0; j<image.width; j++) {
-          int index = (j+offset)%image.width;
-          tempTab[index+i*image.width] = image.pixels[j+i*image.width];
-       }
+    for (int i = start; i<end; i++) {
+      for (int j = 0; j<image.width; j++) {
+        int index = (j+offset)%image.width;
+        tempTab[index+i*image.width] = image.pixels[j+i*image.width];
+      }
     }
-    for(int i = start; i < end; i++) {
-       for (int j = 0; j<image.width;j++) {
-          image.pixels[j+i*image.width] = tempTab[j+i*image.width];
-       }
+    for (int i = start; i < end; i++) {
+      for (int j = 0; j<image.width; j++) {
+        image.pixels[j+i*image.width] = tempTab[j+i*image.width];
+      }
     }
     image.updatePixels();
     preview=image.get();
     calcPreview();
   }
 
-  void debugSelection(ArrayList<PVector> polygon) {
-      for (int i = 0; i<preview.height; i++) {
+  void calcSelectionPreview(ArrayList<PVector> polygon) {
+    for (int i = 0; i<preview.height; i++) {
       for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
-        if (pointIsInPoly(j-i*preview.width, i, polygon)) {
+        if (pointIsInPoly(j-i*preview.width, i, polygon) && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
           preview.pixels[j] = 0xFFFFFF;
         } else {
           preview.pixels[j] = 0x000000;
@@ -111,10 +154,59 @@ class sceneContainer {
     preview.updatePixels();
   }
 
+  void sortSelectionHorizontal() {
+    image.loadPixels();
+    for (int i = 0; i<image.height; i++) {
+      for (int j = i*image.width; j<(i+1)*image.width; j++) {
+        if (red(preview.pixels[j]) == 255 && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
+          int from = j;
+          int to = from;
+          while (to<(i+1)*image.width && red(preview.pixels[j]) == 255 && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+            to++;
+            j++;
+          }
+          if (to-from > 0) {
+            this.mergesort(image.pixels, from, to);
+          }
+        }
+      }
+    }
+    image.updatePixels();
+  }
+
+  void sortSelectionVertical() {
+    image.loadPixels();
+    for (int i = 0; i<image.width; i++) {
+      for (int j = i; j < image.width*image.height; j+=image.width) {
+        if (red(preview.pixels[j]) == 255 && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) { //Check if pixel should be sorted
+          verHelper.clear();
+          int from = j;
+          int to = from;
+          while (to<image.width*image.height && red(preview.pixels[j]) == 255 && checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+            verHelper.append(image.pixels[j]);
+            to+=image.width;
+            j+=image.width;
+          }
+          color[] tempTab;
+          if (verHelper.size()>1) {
+            tempTab = verHelper.array();
+            this.mergesort(tempTab, 0, verHelper.size());
+            int index = 0;
+            for (int k = from; k<to; k+=image.width) {
+              image.pixels[k] = tempTab[index];
+              index++;
+            }
+          }
+        }
+      }
+    }
+    image.updatePixels();
+  }
+
   void calcPreview() {
     for (int i = 0; i<preview.height; i++) {
       for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
-        if (checkPixel(preview.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
+        if (checkPixel(image.pixels[j], pixelCheckMode, lowerLimit, upperLimit)) {
           preview.pixels[j] = 0xFFFFFF;
         } else {
           preview.pixels[j] = 0x000000;
@@ -190,7 +282,7 @@ class sceneContainer {
         j = rght;
         while (i < rght && j < rend) {
           //if (getBrightness(tab[i], pixelCheckMode) >= getBrightness(tab[j], pixelCheckMode)) {
-          if (comparePixels(tab[i],tab[j],sortingMode,ascending)) {
+          if (comparePixels(tab[i], tab[j], sortingMode, ascending)) {
             //  if (saturation(tab[i]) >= saturation(tab[j])) {
             sortTab[m] = tab[i];
             i++;
