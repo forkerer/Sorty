@@ -59,6 +59,10 @@ class sceneContainer {
     sortTab = new color[image.pixels.length];
   }
   
+  void ascDescChange(boolean value) {
+     ascending = value; 
+  }
+  
   float getLowerLimit() {
      return lowerLimit;
   }

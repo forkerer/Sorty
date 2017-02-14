@@ -33,7 +33,7 @@ void processMenu() {
 }
 
 void draw() {
-  background(0);
+  background(#02182F);
   if (Scene != null) {
     Scene.display();
   }
@@ -44,27 +44,17 @@ void draw() {
     }
     line(calcScreenX((int)selectedArea.get(selectedArea.size()-1).x), calcScreenY((int)selectedArea.get(selectedArea.size()-1).y), calcScreenX((int)selectedArea.get(0).x), calcScreenY((int)selectedArea.get(0).y));
   }
-  //if (Scene != null && control != null) {
-    //control.updateSliders();
-  //}
-  fill(0);/*
-  outlineText("lower: "+nf(Scene.lowerLimit  , 1, 2), 10, 32);
-   outlineText("upper: "+nf(Scene.upperLimit, 1, 2), 10, 64);
-   outlineText("Selection mode: "+ Scene.pixelCheckMode.name(), 10, 96);
-   outlineText("Sorting mode: "+Scene.sortingMode.name(), 10, 128);
-   outlineText("Preview: "+Scene.showPreview, 10, 160);
-   outlineText("y: "+mouseY+" : " + (int)((float)mouseY*((float)Scene.image.height/ (float)height)), 10, 192);
-   outlineText("mouseX: " + mouseX + " : " + calcScreenX(calcImageX(mouseX)), 10, 224);*/
+  if ( control != null && control.showMenu) {
+    fill(#02182F);
+    beginShape();
+    vertex(0,0);
+    vertex(220,0);
+    vertex(220,height);
+    vertex(0,height);
+    endShape();
+  }
+  fill(0);
   outlineText("FPS: " + frameRate, 150, 32);
-  /*
-  cp5 = new ControlP5(this);
-   button = cp5.addButton("Preview")
-   .setPosition(10, 250)
-   .setColorForeground(color(120))
-   .setColorActive(color(255))
-   .setColorLabel(color(0))
-   .setSize(80, 40)
-   ;*/
 }
 
 void fileSelected(File selection) {
@@ -133,12 +123,19 @@ public void keyPressed() {
       Scene.sortVertical();
     }
   }
-  if (key == 'o') {
-    control.cp5.setVisible(false);
+  
+  if (key == 'm') {
+     if (control != null) {
+        if (control.showMenu == true) {
+           control.showMenu = false;
+           control.cp5.setVisible(false);
+        } else {
+           control.showMenu = true;
+           control.cp5.setVisible(true);
+        }
+     }
   }
-  if (key == 'p') {
-    control.cp5.setVisible(true);
-  }
+  /*
   if (key == 'k') {
     Scene.setUpperLimit(Scene.upperLimit-0.05);
     println();
@@ -175,13 +172,13 @@ public void keyPressed() {
         break;
       }
     }
-  }
+  }*/
   if (key == 's') {
     Scene.image.save("Results/after.jpg");
-  }
+  }/*
   if (key == 't') {
     Scene.setPreview();
-  }
+  }*/
   if (keyCode == '1') {
     y1= (int)((float)mouseY*((float)Scene.image.height/ (float)height));
     if (y1 > y2) {

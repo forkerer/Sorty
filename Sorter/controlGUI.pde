@@ -11,11 +11,14 @@ class controlGUI {
   Button previewButton;
   DropdownList checkMode;
   DropdownList sortMode;
+  Toggle AscDesc;
+  Button sortHorizontal;
+  Button sortVertical;
 
   controlGUI(ControlP5 control) {
     cp5 = control;
-
     showMenu = true;
+    
     lowerLimitSlider = cp5.addSlider("lowerLimit")
       .setPosition(10, 50)
       .setRange(0, 1)
@@ -36,6 +39,15 @@ class controlGUI {
       .setPosition(10, 200)
       .setSize(50, 50)
       .plugTo(this);
+    previewButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+
+    AscDesc = cp5.addToggle("AscendingDescending")
+      .setPosition(85, 200)
+      .setSize(125, 50)
+      .setMode(ControlP5.SWITCH)
+      .setValue(true)
+      .plugTo(this);
+      AscDesc.getCaptionLabel().set("Ascending                  Descending");
 
     checkMode = cp5.addDropdownList("checkMode")
       .setPosition(10, 275)
@@ -50,6 +62,20 @@ class controlGUI {
       .setType(DropdownList.LIST)
       .plugTo(this);
     customize(sortMode);
+    
+    sortHorizontal = cp5.addButton("sortHor")
+      .setPosition(10,470)
+      .setSize(90,50)
+      .plugTo(this);
+    sortHorizontal.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    sortHorizontal.getCaptionLabel().set("Sort  Horizontally");
+    
+    sortVertical = cp5.addButton("sortVer")
+      .setPosition(120,470)
+      .setSize(90,50)
+      .plugTo(this);
+    sortVertical.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    sortVertical.getCaptionLabel().set("Sort  Vertically");
   }
 
   void customize(DropdownList dd) {
@@ -81,16 +107,36 @@ class controlGUI {
     Scene.setPreview();
   }
   
+  void AscendingDescending(boolean theFlag) {
+       Scene.ascDescChange(theFlag);
+  }
+  
+  void sortHor() {
+    if (selector) {
+      Scene.sortSelectionHorizontal();
+    } else {
+      Scene.sortHorizontal();
+    }
+  }
+  
+  void sortVer() {
+     if (selector) {
+      Scene.sortSelectionVertical();
+    } else {
+      Scene.sortVertical();
+    }
+  }
+
   void controlEvent(ControlEvent theEvent) {
     if (theEvent.isController()) {
       //outlineText(theEvent.getController().getName(),300,50);
       if (theEvent.getController().getName() == "checkMode") {
-        outlineText(theEvent.getController().getName(),300,50);
+        outlineText(theEvent.getController().getName(), 300, 50);
         Scene.setCheckMode(modes[(int)theEvent.getController().getValue()]);
         checkMode.setOpen(true);
       }
       if (theEvent.getController().getName() == "sortMode") {
-        outlineText(theEvent.getController().getName(),300,50);
+        outlineText(theEvent.getController().getName(), 300, 50);
         Scene.setSortingMode(modes[(int)theEvent.getController().getValue()]);
         sortMode.setOpen(true);
       }
