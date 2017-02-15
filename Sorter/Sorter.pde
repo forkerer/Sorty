@@ -147,18 +147,10 @@ public void mouseReleased()
 
 public void keyPressed() {
   if (key == 'h') {
-    if (selector) {
-      Scene.sortSelectionHorizontal();
-    } else {
-      Scene.sortHorizontal();
-    }
+    Scene.processSortHorizontal();
   }
   if (key == 'v') {
-    if (selector) {
-      Scene.sortSelectionVertical();
-    } else {
-      Scene.sortVertical();
-    }
+    Scene.processSortVertical();
   }
 
   if (key == 'm') {

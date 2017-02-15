@@ -1,4 +1,4 @@
-class startMenu {
+ class startMenu {
   ControlP5 cp5;
   Button loadImage;
   Button exit;

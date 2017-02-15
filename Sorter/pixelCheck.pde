@@ -27,9 +27,9 @@ float getBrightness(color col, checkMode mode) {
      
      case AVERAGE: return (((float)(green(col)+red(col)+blue(col)))/255)/3;
      
-     case HUE: return hue(col)/360;
+     case HUE: return (float)hue(col)/360;
      
-     case SATURATION: return saturation(col)/255;
+     case SATURATION: return (float)saturation(col)/255;
      
      case RED: return (float)red(col)/255;
      

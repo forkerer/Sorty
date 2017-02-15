@@ -71,9 +71,9 @@ class sceneContainer {
   void ascDescChange(boolean value) {
     ascending = value;
   }
-  
+
   void setWorkSpace(workSpc space) {
-     this.workSpace = space;
+    this.workSpace = space;
   }
 
   float getLowerLimit() {
@@ -114,7 +114,7 @@ class sceneContainer {
     preview=image.get();
     processPreview();
   }
-  
+
   void resetImageSelection(ArrayList<PVector> polygon) {
     for (int i = 0; i<preview.height; i++) {
       for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
@@ -127,7 +127,7 @@ class sceneContainer {
     preview=image.get();
     processPreview();
   }
-  
+
   void resetImageNoSelection(ArrayList<PVector> polygon) {
     for (int i = 0; i<preview.height; i++) {
       for (int j = i*preview.width; j<(i+1)*preview.width; j++) {
@@ -144,48 +144,94 @@ class sceneContainer {
   void setPreview() {
     showPreview = !showPreview;
   }
-  
+
   void processPreview() {
     switch(workSpace) {
-       case ALL: 
-         this.calcPreview();
-         break;
-       case SELECTION:
-         if(!selectedArea.isEmpty()) {
-         this.calcSelectionPreview(selectedArea);
-         } else {
-         this.calcPreview();
-         }
-         break;
-       case ALLNOSELECTION:
-         if(!selectedArea.isEmpty()) {
-         this.calcNoSelectionPreview(selectedArea);
-         } else {
-         this.calcPreview();
-         }
-         break;
+    case ALL: 
+      this.calcPreview();
+      break;
+    case SELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.calcSelectionPreview(selectedArea);
+      } else {
+        this.calcPreview();
+      }
+      break;
+    case ALLNOSELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.calcNoSelectionPreview(selectedArea);
+      } else {
+        this.calcPreview();
+      }
+      break;
+    }
+  }
+
+  void processReset() {
+    switch(workSpace) {
+    case ALL: 
+      resetImage();
+      break;
+    case SELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.resetImageSelection(selectedArea);
+      } else {
+        this.resetImage();
+      }
+      break;
+    case ALLNOSELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.resetImageNoSelection(selectedArea);
+      } else {
+        this.resetImage();
+      }
+      break;
+    }
+  }
+
+  void processSortHorizontal() {
+    this.processPreview();
+    switch(workSpace) {
+    case ALL:
+      this.sortHorizontal();
+      break;
+    case SELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.sortSelectionHorizontal();
+      } else {
+        this.sortHorizontal();
+      }
+      break;
+    case ALLNOSELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.sortSelectionHorizontal();
+      } else {
+        this.sortHorizontal();
+      }
+      break;
     }
   }
   
-  void processReset() {
+  void processSortVertical() {
+    this.processPreview();
     switch(workSpace) {
-      case ALL: 
-        resetImage();
-        break;
-      case SELECTION:
-         if(!selectedArea.isEmpty()) {
-         this.resetImageSelection(selectedArea);
-         } else {
-         this.resetImage();
-         }
-         break;
-       case ALLNOSELECTION:
-         if(!selectedArea.isEmpty()) {
-         this.resetImageNoSelection(selectedArea);
-         } else {
-         this.resetImage();
-         }
-         break;
+    case ALL:
+      this.sortVertical();
+      break;
+    case SELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.sortSelectionVertical();
+      } else {
+        this.sortVertical();
+      }
+      break;
+    case ALLNOSELECTION:
+      if (!selectedArea.isEmpty()) {
+        this.sortSelectionVertical();
+      } else {
+        this.sortVertical();
+      }
+      break;
     }
   }
 
