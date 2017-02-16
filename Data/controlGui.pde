@@ -18,6 +18,11 @@ public class controlGUI {
   //RadioButton chgSelection;
   Button delSelection;
   RadioButton workSpace;
+  Button resetButton;
+
+  String IMGSavePath;
+  Textfield saveName;
+  Button saveButton;
 
   controlGUI(ControlP5 control) {
     cp5 = control;
@@ -123,6 +128,26 @@ public class controlGUI {
     for (Toggle t : workSpace.getItems()) {
       t.getCaptionLabel().align(ControlP5.CENTER, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     }
+
+    resetButton = cp5.addButton("reset")
+      .setPosition(10, 745)
+      .setSize(90, 50)
+      .plugTo(this);
+    resetButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+
+    saveName = cp5.addTextfield("fileName") 
+      .setPosition(10, 845)
+      .setSize(125, 30)
+      .setAutoClear(false)
+      .plugTo(this);
+    saveName.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    saveName.getCaptionLabel().set("Filename and format");
+
+    saveButton = cp5.addButton("save")
+      .setPosition(160, 845)
+      .setSize(50, 30)
+      .plugTo(this);
+    saveButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
   }
 
 
@@ -177,10 +202,19 @@ public class controlGUI {
     Scene.processPreview();
   }
 
-  public void workSpc(int num) {
+  void workSpc(int num) {
     workSpc[] spaces = workSpc.values();
     Scene.setWorkSpace(spaces[num]);
     Scene.processPreview();
+  }
+
+  void reset() {
+    Scene.processReset();
+  }
+
+  void save() {
+    this.IMGSavePath = saveName.getText();
+    Scene.saveImage(this.IMGSavePath);
   }
 
   void controlEvent(ControlEvent theEvent) {

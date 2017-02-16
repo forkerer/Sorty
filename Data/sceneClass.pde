@@ -430,7 +430,7 @@ public class sceneContainer {
   }
 
   public void saveImage(String path) {
-    this.image.save(path);
+    this.image.save("Results/"+path);
   }
   
   public void setPreview() {

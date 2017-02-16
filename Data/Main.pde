@@ -91,14 +91,14 @@ public void mousePressed()
 } 
 
 public void keyPressed() {
-  if (key == 'h') {
+  if (key == 'h' && !Control.saveName.isFocus()) {
     Scene.processSortHorizontal();
   }
-  if (key == 'v') {
+  if (key == 'v' && !Control.saveName.isFocus()) {
     Scene.processSortVertical();
   }
   
-   if (key == 'm') {
+   if (key == 'm' && !Control.saveName.isFocus()) {
     if (Control != null) {
       if (Control.showMenu == true) {
         Control.showMenu = false;
@@ -110,11 +110,11 @@ public void keyPressed() {
     }
   }
   
-  if (key == 'r') {
+  if (key == 'r' && !Control.saveName.isFocus()) {
    Scene.processReset();
    }
    
-   if (key == 's') {
+   if (key == 's' && !Control.saveName.isFocus()) {
     Scene.saveImage("Results/after.jpg");
   }
 }
