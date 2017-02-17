@@ -1,6 +1,7 @@
-import controlP5.*;
+
 
 checkMode[] modes = checkMode.values();
+saveFormat[] formats = saveFormat.values();
 
 public class controlGUI {
   //checkMode[] modes;
@@ -23,6 +24,7 @@ public class controlGUI {
   String IMGSavePath;
   Textfield saveName;
   Button saveButton;
+  DropdownList saveFormat;
 
   controlGUI(ControlP5 control) {
     cp5 = control;
@@ -148,6 +150,13 @@ public class controlGUI {
       .setSize(50, 30)
       .plugTo(this);
     saveButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    
+    saveFormat = cp5.addDropdownList("saveFormat")
+      .setPosition(10, 900)
+      .setSize(90, 140)
+      .setType(DropdownList.LIST)
+      .plugTo(this);
+    customizeFormat(saveFormat);
   }
 
 
@@ -157,6 +166,14 @@ public class controlGUI {
     dd.setBarHeight(20);
     for (int i = 0; i<modes.length; i++) {
       dd.addItem(modes[i].name(), i);
+    }
+  }
+  
+  void customizeFormat(DropdownList dd) {
+    dd.setItemHeight(40);
+    dd.setBarHeight(20);
+    for (int i = 0; i<formats.length; i++) {
+      dd.addItem(formats[i].name(), i);
     }
   }
 
@@ -226,6 +243,10 @@ public class controlGUI {
       if (theEvent.getController().getName() == "sortMode") {
         Scene.setSortingMode(modes[(int)theEvent.getController().getValue()]);
         sortMode.setOpen(true);
+      }
+      if (theEvent.getController().getName() == "saveFormat") {
+        Scene.setSaveFormat(formats[(int)theEvent.getController().getValue()]);
+        saveFormat.setOpen(true);
       }
     }
   }
