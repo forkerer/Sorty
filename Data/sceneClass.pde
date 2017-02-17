@@ -6,10 +6,15 @@ enum checkMode {
   LUMA, AVERAGE, HUE, SATURATION, RED, GREEN, BLUE
 }
 
+enum saveFormat {
+  JPG,TIF,PNG,TGA,GIF
+}
+
 public class sceneContainer {
-  private PImage image;
-  private PImage preview;
-  private PImage backup;
+  private PApplet parent;
+  private PImage[] image;
+  private PImage[] preview;
+  private PImage[] backup;
   private float lowerLimit;  //lower limit of sorting
   private float upperLimit;  //upper limit of sorting
   private boolean ascending;  //Decides if sorting should be ascending or descending
@@ -17,10 +22,15 @@ public class sceneContainer {
   private color[] verHelper;  //Used as temporary row(so columns can be sorted like rows)  verticalHelper
   private boolean showPreview;
   private boolean selectionActive;
+  private boolean isGif;
+  private int counter;
+  private int counterDelay;
+  private int counterDelayLimit;
 
   private checkMode pixelCheckMode;  //used to decide what should be sorted
   private checkMode sortingMode;  //used to decide by what should the image be sorted
   private workSpc workSpace;  //used to decide what part of the image is affected by actions
+  private saveFormat format; //Decides what format file will be saved in
 
   public float newWidth;
   public float newHeight;
@@ -28,21 +38,38 @@ public class sceneContainer {
   public ArrayList<PVector> selectedArea;
 
   ////////////////////////////////////// CONSTRUCTOR //////////////////////////////////////
-  sceneContainer(PImage sourceImg, float lower, float upper, checkMode mode) {
-    this.image = sourceImg.get();
-    this.backup = sourceImg.get();
-    this.preview = sourceImg.get();
+  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p) {
+    parent = p;
+    isGif = sourceImg.length == 1 ? false : true;
+    if (isGif) {
+       format = saveFormat.GIF; 
+    } else {
+       format = saveFormat.JPG; 
+    }
+
+    this.image = new PImage[sourceImg.length];
+    this.backup = new PImage[sourceImg.length];
+    this.preview = new PImage[sourceImg.length];
+
+    for (int i = 0; i<sourceImg.length; i++) {
+      this.image[i] = sourceImg[i].get();
+      this.backup[i] = sourceImg[i].get();
+      this.preview[i] = sourceImg[i].get();
+    }
 
     this.lowerLimit = lower;
     this.upperLimit = upper;
+    this.counter = 0;
+    this.counterDelay = 0;
+    this.counterDelayLimit = 10;
 
     this.pixelCheckMode = mode;
     this.sortingMode = mode;
     this.workSpace = workSpc.ALL;
 
-    sourceImg.loadPixels();
-    this.verHelper = new color[sourceImg.height];
-    this.sortTab = new color[sourceImg.pixels.length];
+    sourceImg[0].loadPixels();
+    this.verHelper = new color[sourceImg[0].height];
+    this.sortTab = new color[sourceImg[0].pixels.length];
     this.selectedArea = new ArrayList<PVector>();
 
     this.showPreview = false;
@@ -51,94 +78,101 @@ public class sceneContainer {
 
 
     this.processPreview();
-    this.calculateNewImageSize(sourceImg.width, sourceImg.height);
+    this.calculateNewImageSize(sourceImg[0].width, sourceImg[0].height);
   }
 
   ////////////////////////////////////// DISPLAY THIS WHOLE THING //////////////////////////////////////
   public void display() {
     fill(0);
-
     beginShape();
 
     if (showPreview == true) { 
-      texture(this.preview);
+      texture(this.preview[counter]);
     } else {
-      texture(this.image);
+      texture(this.image[counter]);
     }
 
     if (wideCalc == false) {
       vertex((width-newWidth)/2, 0, 0, 0);
-      vertex((width-newWidth)/2+newWidth, 0, image.width, 0);
-      vertex((width-newWidth)/2+newWidth, height, image.width, image.height);
-      vertex((width-newWidth)/2, height, 0, image.height);
+      vertex((width-newWidth)/2+newWidth, 0, image[0].width, 0);
+      vertex((width-newWidth)/2+newWidth, height, image[0].width, image[0].height);
+      vertex((width-newWidth)/2, height, 0, image[0].height);
     } else {
       vertex(0, (height-newHeight)/2, 0, 0);
-      vertex(width, (height-newHeight)/2, image.width, 0);
-      vertex(width, (height-newHeight)/2 + newHeight, image.width, image.height);
-      vertex(0, (height-newHeight)/2 + newHeight, 0, image.height);
+      vertex(width, (height-newHeight)/2, image[0].width, 0);
+      vertex(width, (height-newHeight)/2 + newHeight, image[0].width, image[0].height);
+      vertex(0, (height-newHeight)/2 + newHeight, 0, image[0].height);
     }
 
     endShape();
+
+    if (counterDelay >= counterDelayLimit) {
+      counter = (counter+1)%this.image.length;
+      counterDelay=0;
+    } else {
+      counterDelay++;
+    }
   }
   ////////////////////////////////////// PREVIEW FUNCTIONS //////////////////////////////////////
   public void processPreview() {
-    this.image.loadPixels();
-    this.preview.loadPixels();
+    for (int i = 0; i<image.length; i++) {
+      this.image[i].loadPixels();
+      this.preview[i].loadPixels();
 
-    switch(this.workSpace) {
-    case ALL: 
-      this.calcPreview();
-      break;
-    case SELECTION:
-      if (this.selectedArea.size() > 2) {
-        this.calcSelectionPreview(selectedArea);
-      } else {
-        this.calcPreview();
+      switch(this.workSpace) {
+      case ALL: 
+        this.calcPreview(i);
+        break;
+      case SELECTION:
+        if (this.selectedArea.size() > 2) {
+          this.calcSelectionPreview(selectedArea, i);
+        } else {
+          this.calcPreview(i);
+        }
+        break;
+      case ALLNOSELECTION:
+        if (this.selectedArea.size() > 2) {
+          this.calcNoSelectionPreview(selectedArea, i);
+        } else {
+          this.calcPreview(i);
+        }
+        break;
       }
-      break;
-    case ALLNOSELECTION:
-      if (this.selectedArea.size() > 2) {
-        this.calcNoSelectionPreview(selectedArea);
-      } else {
-        this.calcPreview();
-      }
-      break;
+      this.preview[i].updatePixels();
     }
-
-    this.preview.updatePixels();
   }
 
-  private void calcPreview() {
-    for (int row = 0; row < this.preview.height; row++) {
-      for (int pixel = row * this.preview.width; pixel < (row+1) * this.preview.width; pixel++) {
-        if (checkPixel(this.image.pixels[pixel])) {
-          this.preview.pixels[pixel] = 0xFFFFFF;
+  private void calcPreview(int index) {
+    for (int row = 0; row < this.preview[index].height; row++) {
+      for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
+        if (checkPixel(this.image[index].pixels[pixel])) {
+          this.preview[index].pixels[pixel] = 0xFFFFFFFF;
         } else {
-          this.preview.pixels[pixel] = 0x000000;
+          this.preview[index].pixels[pixel] = 0xFF000000;
         }
       }
     }
   }
 
-  private void calcNoSelectionPreview(ArrayList<PVector> polygon) {
-    for (int row = 0; row < this.preview.height; row++) {
-      for (int pixel = row * this.preview.width; pixel < (row+1) * this.preview.width; pixel++) {
-        if (checkPixel(this.image.pixels[pixel]) && !pointIsInPoly(pixel - row * this.preview.width, row, polygon)) {
-          this.preview.pixels[pixel] = 0xFFFFFF;
+  private void calcNoSelectionPreview(ArrayList<PVector> polygon, int index) {
+    for (int row = 0; row < this.preview[index].height; row++) {
+      for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
+        if (checkPixel(this.image[index].pixels[pixel]) && !pointIsInPoly(pixel - row * this.preview[index].width, row, polygon)) {
+          this.preview[index].pixels[pixel] = 0xFFFFFFFF;
         } else {
-          this.preview.pixels[pixel] = 0x000000;
+          this.preview[index].pixels[pixel] = 0x000000FF;
         }
       }
     }
   }
 
-  private void calcSelectionPreview(ArrayList<PVector> polygon) {
-    for (int row = 0; row < this.preview.height; row++) {
-      for (int pixel = row * this.preview.width; pixel < (row+1) * this.preview.width; pixel++) {
-        if (checkPixel(this.image.pixels[pixel]) && pointIsInPoly(pixel - row * this.preview.width, row, polygon)) {
-          this.preview.pixels[pixel] = 0xFFFFFF;
+  private void calcSelectionPreview(ArrayList<PVector> polygon, int index) {
+    for (int row = 0; row < this.preview[index].height; row++) {
+      for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
+        if (checkPixel(this.image[index].pixels[pixel]) && pointIsInPoly(pixel - row * this.preview[index].width, row, polygon)) {
+          this.preview[index].pixels[pixel] = 0xFFFFFFFF;
         } else {
-          this.preview.pixels[pixel] = 0x000000;
+          this.preview[index].pixels[pixel] = 0x000000FF;
         }
       }
     }
@@ -146,43 +180,44 @@ public class sceneContainer {
 
   ////////////////////////////////////// RESET FUNCTIONS //////////////////////////////////////
   public void processReset() {
-    this.image.loadPixels();
-    this.preview.loadPixels();
-    this.backup.loadPixels();
+    for (int i = 0; i<image.length; i++) {
+      this.image[i].loadPixels();
+      this.preview[i].loadPixels();
+      this.backup[i].loadPixels();
 
-    switch(this.workSpace) {
-    case ALL: 
-      this.resetImage();
-      break;
-    case SELECTION:
-      if (this.selectedArea.size() > 2) {
-        this.resetImageWithSelection();
-      } else {
-        this.resetImage();
+      switch(this.workSpace) {
+      case ALL: 
+        this.resetImage(i);
+        break;
+      case SELECTION:
+        if (this.selectedArea.size() > 2) {
+          this.resetImageWithSelection(i);
+        } else {
+          this.resetImage(i);
+        }
+        break;
+      case ALLNOSELECTION:
+        if (this.selectedArea.size() > 2) {
+          this.resetImageWithSelection(i);
+        } else {
+          this.resetImage(i);
+        }
+        break;
       }
-      break;
-    case ALLNOSELECTION:
-      if (this.selectedArea.size() > 2) {
-        this.resetImageWithSelection();
-      } else {
-        this.resetImage();
-      }
-      break;
+      this.image[i].updatePixels();
     }
-
-    this.image.updatePixels();
     this.processPreview();
   }
 
-  private void resetImage() {
-    this.image = this.backup.get();
+  private void resetImage(int index) {
+    this.image[index] = this.backup[index].get();
   }
 
-  private void resetImageWithSelection() {
-    for (int row = 0; row < this.preview.height; row++) {
-      for (int pixel = row * this.preview.width; pixel < (row+1) * this.preview.width; pixel++) {
-        if (red(this.preview.pixels[pixel]) == 255) {
-          this.image.pixels[pixel] = this.backup.pixels[pixel];
+  private void resetImageWithSelection(int index) {
+    for (int row = 0; row < this.preview[index].height; row++) {
+      for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
+        if (red(this.preview[index].pixels[pixel]) == 255) {
+          this.image[index].pixels[pixel] = this.backup[index].pixels[pixel];
         }
       }
     }
@@ -190,27 +225,27 @@ public class sceneContainer {
 
   ////////////////////////////////////// SORTING FUNCTIONS //////////////////////////////////////
   public void processSortHorizontal() {
-    this.image.loadPixels();
-    this.preview.loadPixels();
-
-    this.sortHorizontal();
-
-    this.image.updatePixels();
+    for (int i = 0; i < image.length; i++) {
+      this.image[i].loadPixels();
+      this.preview[i].loadPixels();
+      this.sortHorizontal(i);
+      this.image[i].updatePixels();
+    }
     this.processPreview();
   }
 
-  private void sortHorizontal() {
-    for (int row = 0; row < image.height; row++) {
-      for (int pixel = row * this.preview.width; pixel < (row+1) * this.preview.width; pixel++) {
-        if (red(this.preview.pixels[pixel]) == 255) {
+  private void sortHorizontal(int index) {
+    for (int row = 0; row < image[index].height; row++) {
+      for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
+        if (red(this.preview[index].pixels[pixel]) == 255) {
           int from = pixel;
           int to = from;
-          while (to < (row+1) * this.preview.width && (red(this.preview.pixels[pixel]) == 255)) {
+          while (to < (row+1) * this.preview[index].width && (red(this.preview[index].pixels[pixel]) == 255)) {
             to++;
             pixel++;
           }
           if (to - from > 1) {
-            this.mergeSort(this.image.pixels, from, to);
+            this.mergeSort(this.image[index].pixels, from, to);
           }
         }
       }
@@ -218,30 +253,30 @@ public class sceneContainer {
   }
 
   public void processSortVertical() {
-    this.image.loadPixels();
-    this.preview.loadPixels();
-
-    this.sortVertical();
-
-    this.image.updatePixels();
+    for (int i = 0; i< image.length; i++) {
+      this.image[i].loadPixels();
+      this.preview[i].loadPixels();
+      this.sortVertical(i);
+      this.image[i].updatePixels();
+    }
     this.processPreview();
   }
 
-  private void sortVertical() {
-    for (int column = 0; column < this.preview.width; column++) {
-      for (int pixel = column; pixel < this.preview.height * this.preview.width; pixel += this.preview.width) {
-        if (red(this.preview.pixels[pixel]) == 255) {
+  private void sortVertical(int index) {
+    for (int column = 0; column < this.preview[index].width; column++) {
+      for (int pixel = column; pixel < this.preview[index].height * this.preview[index].width; pixel += this.preview[index].width) {
+        if (red(this.preview[index].pixels[pixel]) == 255) {
           int from = pixel;
           int counter = 0;
-          while (pixel < this.preview.height * this.preview.width && red(this.preview.pixels[pixel]) == 255) {
-            verHelper[counter] = this.image.pixels[pixel];
+          while (pixel < this.preview[index].height * this.preview[index].width && red(this.preview[index].pixels[pixel]) == 255) {
+            verHelper[counter] = this.image[index].pixels[pixel];
             counter++;
-            pixel += this.preview.width;
+            pixel += this.preview[index].width;
           }
           if (counter > 1) {
             this.mergeSort(this.verHelper, 0, counter);
             for (int i = 0; i< counter; i++) {
-              this.image.pixels[from+(i*this.preview.width)] = verHelper[i];
+              this.image[index].pixels[from+(i*this.preview[index].width)] = verHelper[i];
             }
           }
         }
@@ -414,11 +449,11 @@ public class sceneContainer {
   }
 
   public int getImageWidth() {
-    return this.image.width;
+    return this.image[0].width;
   }
 
   public int getImageHeight() {
-    return this.image.height;
+    return this.image[0].height;
   }
 
   public boolean isSelectionActive() {
@@ -429,16 +464,37 @@ public class sceneContainer {
     this.showPreview = !this.showPreview;
   }
 
-  public void saveImage(String path) {
-    this.image.save("Results/"+path);
-  }
-  
   public void setPreview() {
     this.showPreview = !this.showPreview;
   }
-  
+
   public void setSelection() {
     this.selectionActive = !this.selectionActive;
   }
   
+  public void setSaveFormat(saveFormat mode) {
+    this.format = mode;
+  }
+  
+  public void saveImage(String path) {
+    //this.image[0].save("Results/"+path);
+    if (this.isGif) {
+      if (this.format == saveFormat.GIF) {
+        GifMaker gifExport = new GifMaker(this.parent,"Results/"+path+"."+format.name().toLowerCase());
+        gifExport.setRepeat(0);
+        gifExport.setDelay(50);
+        gifExport.setTransparent(0,0,0);
+        for(int i = 0; i<image.length; i++) {
+           gifExport.addFrame(this.image[i]); 
+        }
+        gifExport.finish();
+      } else {
+        for(int i = 0; i<image.length; i++) {
+          this.image[i].save("Results/"+path+"_"+i+"."+format.name().toLowerCase());
+        }
+      }
+    } else {
+      this.image[0].save("Results/"+path+"."+format.name().toLowerCase());
+    }
+  }
 }
