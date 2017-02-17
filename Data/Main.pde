@@ -1,5 +1,6 @@
 import gifAnimation.*;
 import controlP5.*;
+import java.util.*;
 
 enum programState {
   LOADING, READYTODISPLAY
@@ -11,7 +12,7 @@ boolean loadingFinished;
 programState state;
 
 PImage[] selectedImages;
-String selectedPath;// = "D:\\Development\\gifsexamples\\avo5CE2.gif";
+String selectedPath;// = "D:\\Development\\gifsexamples\\tumblr_nhtqrly1v41qztvpwo3_r1_400.gif";
 PImage logo;
 
 void settings() {
@@ -52,6 +53,7 @@ void draw() {
   case READYTODISPLAY:
     background(#02182F);
     Scene.display();
+    stroke(#000000);
     
     if (Control != null && Control.showMenu) {
       fill(#02182F);
@@ -64,7 +66,6 @@ void draw() {
     }
 
     if (!Scene.selectedArea.isEmpty()) {
-      stroke(#000000);
       if (Scene.wideCalc == false) {
         for (int i = 0; i <Scene.selectedArea.size()-1; i++) {
           line(
@@ -169,6 +170,10 @@ public void keyPressed() {
   if ((key == 'v' || key =='V' ) && !Control.saveName.isFocus()) {
     Scene.processSortVertical();
   }
+  
+  if ((key == 'o' || key =='O' ) && !Control.saveName.isFocus()) {
+    Scene.undoAction();
+  }
 
   if ((key == 'm' || key =='M' ) && !Control.saveName.isFocus()) {
     if (Control != null) {
@@ -192,15 +197,18 @@ public void keyPressed() {
 }
 
 void handleLoading() {
+  int avgDelay = 1;
   if (selectedPath.charAt(selectedPath.length()-3) == 'g' &&
     selectedPath.charAt(selectedPath.length()-2) == 'i' &&
     selectedPath.charAt(selectedPath.length()-1) == 'f') {
-    selectedImages = Gif.getPImages(this, selectedPath);
+      Gif test =  new Gif(this,selectedPath);
+    selectedImages = test.getPImages();
+    avgDelay = test.getAverageDelay();
   } else {
     selectedImages = new PImage[1];
     selectedImages[0] = loadImage(selectedPath);
   }
-  Scene = new sceneContainer(selectedImages, 0, 1, checkMode.AVERAGE,this);
+  Scene = new sceneContainer(selectedImages, 0, 1, checkMode.AVERAGE,this, avgDelay);
   Control.showMenu = true;
   Control.cp5.setVisible(true);
   state = programState.READYTODISPLAY;

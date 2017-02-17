@@ -20,6 +20,7 @@ public class controlGUI {
   Button delSelection;
   RadioButton workSpace;
   Button resetButton;
+  Button undoButton;
 
   String IMGSavePath;
   Textfield saveName;
@@ -97,17 +98,6 @@ public class controlGUI {
       .plugTo(this);
     chgSelection.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     chgSelection.getCaptionLabel().set("Add/Change  Selection");
-    /*
-    chgSelection = cp5.addRadioButton("chgSel")
-     .setPosition(10,570)
-     .setSize(90,50)
-     .addItem("Add/Change  Selection", 0)
-     .plugTo(this);
-     //chgSelection.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-     //chgSelection.getCaptionLabel().set("Add/Change  Selection");
-     for(Toggle t: workSpace.getItems()) {
-     t.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-     }*/
 
     delSelection = cp5.addButton("delSel")
       .setPosition(120, 570)
@@ -136,6 +126,12 @@ public class controlGUI {
       .setSize(90, 50)
       .plugTo(this);
     resetButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    
+    undoButton = cp5.addButton("undo")
+      .setPosition(120, 745)
+      .setSize(90,50)
+      .plugTo(this);
+    undoButton.getCaptionLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
     saveName = cp5.addTextfield("fileName") 
       .setPosition(10, 845)
@@ -227,6 +223,10 @@ public class controlGUI {
 
   void reset() {
     Scene.processReset();
+  }
+  
+  void undo() {
+     Scene.undoAction(); 
   }
 
   void save() {

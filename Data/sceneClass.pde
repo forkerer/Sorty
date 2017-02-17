@@ -7,7 +7,7 @@ enum checkMode {
 }
 
 enum saveFormat {
-  JPG,TIF,PNG,TGA,GIF
+  JPG, TIF, PNG, TGA, GIF
 }
 
 public class sceneContainer {
@@ -26,6 +26,9 @@ public class sceneContainer {
   private int counter;
   private int counterDelay;
   private int counterDelayLimit;
+  private int averageGIFDelay;
+  private Deque<PImage> changeHistory;
+  private static final int changeHistoryMaxSize = 10;
 
   private checkMode pixelCheckMode;  //used to decide what should be sorted
   private checkMode sortingMode;  //used to decide by what should the image be sorted
@@ -37,14 +40,17 @@ public class sceneContainer {
   public boolean wideCalc;
   public ArrayList<PVector> selectedArea;
 
+
   ////////////////////////////////////// CONSTRUCTOR //////////////////////////////////////
-  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p) {
-    parent = p;
-    isGif = sourceImg.length == 1 ? false : true;
+  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p,int avgDelay) {
+    this.changeHistory = new LinkedList();
+    this.averageGIFDelay = avgDelay;
+    this.parent = p;
+    this.isGif = sourceImg.length == 1 ? false : true;
     if (isGif) {
-       format = saveFormat.GIF; 
+      format = saveFormat.GIF;
     } else {
-       format = saveFormat.JPG; 
+      format = saveFormat.JPG;
     }
 
     this.image = new PImage[sourceImg.length];
@@ -61,7 +67,7 @@ public class sceneContainer {
     this.upperLimit = upper;
     this.counter = 0;
     this.counterDelay = 0;
-    this.counterDelayLimit = 10;
+    this.counterDelayLimit = 2;
 
     this.pixelCheckMode = mode;
     this.sortingMode = mode;
@@ -180,6 +186,12 @@ public class sceneContainer {
 
   ////////////////////////////////////// RESET FUNCTIONS //////////////////////////////////////
   public void processReset() {
+    if (!this.isGif) {
+      changeHistory.addLast(this.image[0].get());
+      if (changeHistory.size() == changeHistoryMaxSize+1) {
+        changeHistory.removeFirst();
+      }
+    }
     for (int i = 0; i<image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
@@ -225,6 +237,12 @@ public class sceneContainer {
 
   ////////////////////////////////////// SORTING FUNCTIONS //////////////////////////////////////
   public void processSortHorizontal() {
+    if (!this.isGif) {
+      changeHistory.addLast(this.image[0].get());
+      if (changeHistory.size() == changeHistoryMaxSize+1) {
+        changeHistory.removeFirst();
+      }
+    }
     for (int i = 0; i < image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
@@ -253,6 +271,12 @@ public class sceneContainer {
   }
 
   public void processSortVertical() {
+    if (!this.isGif) {
+      changeHistory.addLast(this.image[0].get());
+      if (changeHistory.size() == changeHistoryMaxSize+1) {
+        changeHistory.removeFirst();
+      }
+    }
     for (int i = 0; i< image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
@@ -471,25 +495,34 @@ public class sceneContainer {
   public void setSelection() {
     this.selectionActive = !this.selectionActive;
   }
-  
+
+  public void undoAction() {
+    if (!this.isGif) {
+      if (changeHistory.size() > 0) {
+        this.image[0] = changeHistory.removeLast().get();
+        this.processPreview();
+      }
+    }
+  }
+
   public void setSaveFormat(saveFormat mode) {
     this.format = mode;
   }
-  
+
   public void saveImage(String path) {
     //this.image[0].save("Results/"+path);
     if (this.isGif) {
       if (this.format == saveFormat.GIF) {
-        GifMaker gifExport = new GifMaker(this.parent,"Results/"+path+"."+format.name().toLowerCase());
+        GifMaker gifExport = new GifMaker(this.parent, "Results/"+path+"."+format.name().toLowerCase());
         gifExport.setRepeat(0);
-        gifExport.setDelay(50);
-        gifExport.setTransparent(0,0,0);
-        for(int i = 0; i<image.length; i++) {
-           gifExport.addFrame(this.image[i]); 
+        gifExport.setDelay(this.averageGIFDelay);
+        //gifExport.setTransparent(0, 0, 0);
+        for (int i = 0; i<image.length; i++) {
+          gifExport.addFrame(this.image[i]);
         }
         gifExport.finish();
       } else {
-        for(int i = 0; i<image.length; i++) {
+        for (int i = 0; i<image.length; i++) {
           this.image[i].save("Results/"+path+"_"+i+"."+format.name().toLowerCase());
         }
       }
