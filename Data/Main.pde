@@ -12,7 +12,7 @@ boolean loadingFinished;
 programState state;
 
 PImage[] selectedImages;
-String selectedPath;// = "D:\\Development\\gifsexamples\\tumblr_nhtqrly1v41qztvpwo3_r1_400.gif";
+String selectedPath;// = "C:\\Users\\Kamil\\Desktop\\colorful-galaxy-1.jpg";
 PImage logo;
 
 void settings() {
@@ -54,7 +54,7 @@ void draw() {
     background(#02182F);
     Scene.display();
     stroke(#000000);
-    
+
     if (Control != null && Control.showMenu) {
       fill(#02182F);
       beginShape();
@@ -64,37 +64,7 @@ void draw() {
       vertex(0, height);
       endShape();
     }
-
-    if (!Scene.selectedArea.isEmpty()) {
-      if (Scene.wideCalc == false) {
-        for (int i = 0; i <Scene.selectedArea.size()-1; i++) {
-          line(
-            calcScreenX((int)Scene.selectedArea.get(i).x), 
-            Scene.selectedArea.get(i).y * height/Scene.getImageHeight(), 
-            calcScreenX((int)Scene.selectedArea.get(i+1).x), 
-            Scene.selectedArea.get(i+1).y * height/Scene.getImageHeight());
-        }
-        line(
-          calcScreenX((int)Scene.selectedArea.get(Scene.selectedArea.size()-1).x), 
-          Scene.selectedArea.get(Scene.selectedArea.size()-1).y * height/Scene.getImageHeight(), 
-          calcScreenX((int)Scene.selectedArea.get(0).x), 
-          Scene.selectedArea.get(0).y * height/Scene.getImageHeight());
-      } else {
-        for (int i = 0; i <Scene.selectedArea.size()-1; i++) {
-          line(
-            Scene.selectedArea.get(i).x * width / Scene.getImageWidth(), 
-            calcScreenY((int)Scene.selectedArea.get(i).y), 
-            Scene.selectedArea.get(i+1).x * width / Scene.getImageWidth(), 
-            calcScreenY((int)Scene.selectedArea.get(i+1).y));
-        }
-        line(
-          Scene.selectedArea.get(Scene.selectedArea.size()-1).x * width / Scene.getImageWidth(), 
-          calcScreenY((int)Scene.selectedArea.get(Scene.selectedArea.size()-1).y), 
-          Scene.selectedArea.get(0).x * width/ Scene.getImageWidth(), 
-          calcScreenY((int)Scene.selectedArea.get(0).y));
-      }
-    }
-    break;
+    Scene.selectedArea.display();
   }
 }
 /*
@@ -153,12 +123,7 @@ public void mousePressed()
   if (Scene != null) {
     if (Scene.isSelectionActive() == true) {
       if (Control.showMenu && mouseX < 220) return;
-      if (Scene.wideCalc == false) {
-        Scene.selectedArea.add(new PVector(calcImageX(mouseX), ((float)mouseY*((float)Scene.getImageHeight()/ (float)height))));
-      } else {
-        Scene.selectedArea.add(new PVector(((float)mouseX * ((float)Scene.getImageWidth() / (float)width)), calcImageY(mouseY)));
-      }
-      Scene.processPreview();
+      Scene.selectedArea.addPoint(mouseX, mouseY);
     }
   }
 } 
@@ -170,9 +135,12 @@ public void keyPressed() {
   if ((key == 'v' || key =='V' ) && !Control.saveName.isFocus()) {
     Scene.processSortVertical();
   }
-  
+
   if ((key == 'o' || key =='O' ) && !Control.saveName.isFocus()) {
     Scene.undoAction();
+  }
+  if ((key == 'p' || key =='P' ) && !Control.saveName.isFocus()) {
+    Scene.redoAction();
   }
 
   if ((key == 'm' || key =='M' ) && !Control.saveName.isFocus()) {
@@ -197,18 +165,26 @@ public void keyPressed() {
 }
 
 void handleLoading() {
+  int[] Delays;
   int avgDelay = 1;
   if (selectedPath.charAt(selectedPath.length()-3) == 'g' &&
     selectedPath.charAt(selectedPath.length()-2) == 'i' &&
     selectedPath.charAt(selectedPath.length()-1) == 'f') {
-      Gif test =  new Gif(this,selectedPath);
-    selectedImages = test.getPImages();
-    avgDelay = test.getAverageDelay();
+    Gif selectedGif =  new Gif(this, selectedPath);
+    selectedImages = selectedGif.getPImages();
+    Delays = selectedGif.getDelaysArray();
+    if (Delays != null) {
+      int temp = 0;
+      for (int i = 0; i<Delays.length; i++) {
+        temp += Delays[i];
+      }
+      avgDelay = temp/Delays.length;
+    }
   } else {
     selectedImages = new PImage[1];
     selectedImages[0] = loadImage(selectedPath);
   }
-  Scene = new sceneContainer(selectedImages, 0, 1, checkMode.AVERAGE,this, avgDelay);
+  Scene = new sceneContainer(selectedImages, 0, 1, checkMode.AVERAGE, this, avgDelay);
   Control.showMenu = true;
   Control.cp5.setVisible(true);
   state = programState.READYTODISPLAY;

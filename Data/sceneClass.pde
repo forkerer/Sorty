@@ -12,7 +12,7 @@ enum saveFormat {
 
 public class sceneContainer {
   private PApplet parent;
-  private PImage[] image;
+  protected PImage[] image;
   private PImage[] preview;
   private PImage[] backup;
   private float lowerLimit;  //lower limit of sorting
@@ -27,8 +27,7 @@ public class sceneContainer {
   private int counterDelay;
   private int counterDelayLimit;
   private int averageGIFDelay;
-  private Deque<PImage> changeHistory;
-  private static final int changeHistoryMaxSize = 10;
+  private changeHistory history;
 
   private checkMode pixelCheckMode;  //used to decide what should be sorted
   private checkMode sortingMode;  //used to decide by what should the image be sorted
@@ -38,12 +37,11 @@ public class sceneContainer {
   public float newWidth;
   public float newHeight;
   public boolean wideCalc;
-  public ArrayList<PVector> selectedArea;
+  public selection selectedArea;
 
 
   ////////////////////////////////////// CONSTRUCTOR //////////////////////////////////////
-  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p,int avgDelay) {
-    this.changeHistory = new LinkedList();
+  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p, int avgDelay) {
     this.averageGIFDelay = avgDelay;
     this.parent = p;
     this.isGif = sourceImg.length == 1 ? false : true;
@@ -52,6 +50,7 @@ public class sceneContainer {
     } else {
       format = saveFormat.JPG;
     }
+    this.history = new changeHistory(this.isGif);
 
     this.image = new PImage[sourceImg.length];
     this.backup = new PImage[sourceImg.length];
@@ -67,7 +66,7 @@ public class sceneContainer {
     this.upperLimit = upper;
     this.counter = 0;
     this.counterDelay = 0;
-    this.counterDelayLimit = 2;
+    this.counterDelayLimit = 60/(1000/avgDelay);
 
     this.pixelCheckMode = mode;
     this.sortingMode = mode;
@@ -76,7 +75,7 @@ public class sceneContainer {
     sourceImg[0].loadPixels();
     this.verHelper = new color[sourceImg[0].height];
     this.sortTab = new color[sourceImg[0].pixels.length];
-    this.selectedArea = new ArrayList<PVector>();
+    this.selectedArea = new selection();
 
     this.showPreview = false;
     this.ascending = true;
@@ -130,15 +129,15 @@ public class sceneContainer {
         this.calcPreview(i);
         break;
       case SELECTION:
-        if (this.selectedArea.size() > 2) {
-          this.calcSelectionPreview(selectedArea, i);
+        if (this.selectedArea.polygon.size() > 2) {
+          this.calcSelectionPreview(i);
         } else {
           this.calcPreview(i);
         }
         break;
       case ALLNOSELECTION:
-        if (this.selectedArea.size() > 2) {
-          this.calcNoSelectionPreview(selectedArea, i);
+        if (this.selectedArea.polygon.size() > 2) {
+          this.calcNoSelectionPreview(i);
         } else {
           this.calcPreview(i);
         }
@@ -160,25 +159,25 @@ public class sceneContainer {
     }
   }
 
-  private void calcNoSelectionPreview(ArrayList<PVector> polygon, int index) {
+  private void calcNoSelectionPreview(int index) {
     for (int row = 0; row < this.preview[index].height; row++) {
       for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
-        if (checkPixel(this.image[index].pixels[pixel]) && !pointIsInPoly(pixel - row * this.preview[index].width, row, polygon)) {
+        if (checkPixel(this.image[index].pixels[pixel]) && !this.selectedArea.pointIsInPoly(pixel - row * this.preview[index].width, row)) {
           this.preview[index].pixels[pixel] = 0xFFFFFFFF;
         } else {
-          this.preview[index].pixels[pixel] = 0x000000FF;
+          this.preview[index].pixels[pixel] = 0xFF000000;
         }
       }
     }
   }
 
-  private void calcSelectionPreview(ArrayList<PVector> polygon, int index) {
+  private void calcSelectionPreview(int index) {
     for (int row = 0; row < this.preview[index].height; row++) {
       for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
-        if (checkPixel(this.image[index].pixels[pixel]) && pointIsInPoly(pixel - row * this.preview[index].width, row, polygon)) {
+        if (checkPixel(this.image[index].pixels[pixel]) && this.selectedArea.pointIsInPoly(pixel - row * this.preview[index].width, row)) {
           this.preview[index].pixels[pixel] = 0xFFFFFFFF;
         } else {
-          this.preview[index].pixels[pixel] = 0x000000FF;
+          this.preview[index].pixels[pixel] = 0xFF000000;
         }
       }
     }
@@ -186,12 +185,9 @@ public class sceneContainer {
 
   ////////////////////////////////////// RESET FUNCTIONS //////////////////////////////////////
   public void processReset() {
-    if (!this.isGif) {
-      changeHistory.addLast(this.image[0].get());
-      if (changeHistory.size() == changeHistoryMaxSize+1) {
-        changeHistory.removeFirst();
-      }
-    }
+    this.history.addToUndoHistory(image); //add current image to undo history
+    this.history.clearRedoHistory();
+
     for (int i = 0; i<image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
@@ -202,14 +198,14 @@ public class sceneContainer {
         this.resetImage(i);
         break;
       case SELECTION:
-        if (this.selectedArea.size() > 2) {
+        if (this.selectedArea.polygon.size() > 2) {
           this.resetImageWithSelection(i);
         } else {
           this.resetImage(i);
         }
         break;
       case ALLNOSELECTION:
-        if (this.selectedArea.size() > 2) {
+        if (this.selectedArea.polygon.size() > 2) {
           this.resetImageWithSelection(i);
         } else {
           this.resetImage(i);
@@ -237,15 +233,13 @@ public class sceneContainer {
 
   ////////////////////////////////////// SORTING FUNCTIONS //////////////////////////////////////
   public void processSortHorizontal() {
-    if (!this.isGif) {
-      changeHistory.addLast(this.image[0].get());
-      if (changeHistory.size() == changeHistoryMaxSize+1) {
-        changeHistory.removeFirst();
-      }
-    }
+    this.history.addToUndoHistory(image); //add current image to undo history
+    this.history.clearRedoHistory();
+
     for (int i = 0; i < image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
+
       this.sortHorizontal(i);
       this.image[i].updatePixels();
     }
@@ -253,6 +247,7 @@ public class sceneContainer {
   }
 
   private void sortHorizontal(int index) {
+    long temp = System.currentTimeMillis();
     for (int row = 0; row < image[index].height; row++) {
       for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
         if (red(this.preview[index].pixels[pixel]) == 255) {
@@ -268,15 +263,13 @@ public class sceneContainer {
         }
       }
     }
+    println(System.currentTimeMillis() - temp);
   }
 
   public void processSortVertical() {
-    if (!this.isGif) {
-      changeHistory.addLast(this.image[0].get());
-      if (changeHistory.size() == changeHistoryMaxSize+1) {
-        changeHistory.removeFirst();
-      }
-    }
+    this.history.addToUndoHistory(image); //add current image to undo history
+    this.history.clearRedoHistory();
+
     for (int i = 0; i< image.length; i++) {
       this.image[i].loadPixels();
       this.preview[i].loadPixels();
@@ -323,9 +316,7 @@ public class sceneContainer {
         i = left;
         j = rght;
         while (i < rght && j < rend) {
-          //if (getBrightness(tab[i], pixelCheckMode) >= getBrightness(tab[j], pixelCheckMode)) {
           if (comparePixels(tab[i], tab[j])) {
-            //  if (saturation(tab[i]) >= saturation(tab[j])) {
             sortTab[m] = tab[i];
             i++;
           } else {
@@ -350,7 +341,6 @@ public class sceneContainer {
       }
     }
   }
-
 
   ////////////////////////////////////// HELPER FUNCTIONS //////////////////////////////////////
   private boolean checkPixel(color col) {
@@ -497,12 +487,11 @@ public class sceneContainer {
   }
 
   public void undoAction() {
-    if (!this.isGif) {
-      if (changeHistory.size() > 0) {
-        this.image[0] = changeHistory.removeLast().get();
-        this.processPreview();
-      }
-    }
+    this.history.undoChange(this.image);
+  }
+
+  public void redoAction() {
+    this.history.redoChange(this.image);
   }
 
   public void setSaveFormat(saveFormat mode) {

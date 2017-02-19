@@ -211,7 +211,7 @@ public class controlGUI {
   }
 
   void delSel() {
-    Scene.selectedArea.clear();
+    Scene.selectedArea.polygon.clear();
     Scene.processPreview();
   }
 
