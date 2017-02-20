@@ -1,5 +1,5 @@
 # Sorty
-Simple, fast and powerful pixel sorter written in processing
+Simple, fast and powerful pixel sorter written in processing.
 
 ### Features
 * Live preview of what will be sorted
