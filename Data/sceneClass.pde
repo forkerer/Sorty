@@ -23,10 +23,10 @@ public class sceneContainer {
   private boolean showPreview;
   private boolean selectionActive;
   private boolean isGif;
-  private int counter;
-  private int counterDelay;
-  private int counterDelayLimit;
-  private int averageGIFDelay;
+  private boolean isPaused;
+  public int counter;
+  public int[] delays;
+  public gifSyncer syncer;
   private changeHistory history;
 
   private checkMode pixelCheckMode;  //used to decide what should be sorted
@@ -41,15 +41,11 @@ public class sceneContainer {
 
 
   ////////////////////////////////////// CONSTRUCTOR //////////////////////////////////////
-  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p, int avgDelay) {
-    this.averageGIFDelay = avgDelay;
+  sceneContainer(PImage[] sourceImg, float lower, float upper, checkMode mode, PApplet p, int[] Delays) {
+    this.delays = Delays;
     this.parent = p;
     this.isGif = sourceImg.length == 1 ? false : true;
-    if (isGif) {
-      format = saveFormat.GIF;
-    } else {
-      format = saveFormat.JPG;
-    }
+
     this.history = new changeHistory(this.isGif);
 
     this.image = new PImage[sourceImg.length];
@@ -65,8 +61,6 @@ public class sceneContainer {
     this.lowerLimit = lower;
     this.upperLimit = upper;
     this.counter = 0;
-    this.counterDelay = 0;
-    this.counterDelayLimit = 60/(1000/avgDelay);
 
     this.pixelCheckMode = mode;
     this.sortingMode = mode;
@@ -84,6 +78,16 @@ public class sceneContainer {
 
     this.processPreview();
     this.calculateNewImageSize(sourceImg[0].width, sourceImg[0].height);
+    if (isGif) {
+      format = saveFormat.GIF;
+      this.isPaused = false;
+      //thread("gifSyncer");
+      syncer = new gifSyncer();
+      Thread syncThread = new Thread(syncer);
+      syncThread.start();
+    } else {
+      format = saveFormat.JPG;
+    }
   }
 
   ////////////////////////////////////// DISPLAY THIS WHOLE THING //////////////////////////////////////
@@ -110,13 +114,14 @@ public class sceneContainer {
     }
 
     endShape();
-
-    if (counterDelay >= counterDelayLimit) {
-      counter = (counter+1)%this.image.length;
-      counterDelay=0;
-    } else {
-      counterDelay++;
-    }
+    //if (!isPaused) {
+    //if (counterDelay >= counterDelayLimit) {
+    // counter = (counter+1)%this.image.length;
+    // counterDelay=0;
+    //} else {
+    //  counterDelay++;
+    //}
+    //}
   }
   ////////////////////////////////////// PREVIEW FUNCTIONS //////////////////////////////////////
   public void processPreview() {
@@ -247,7 +252,6 @@ public class sceneContainer {
   }
 
   private void sortHorizontal(int index) {
-    long temp = System.currentTimeMillis();
     for (int row = 0; row < image[index].height; row++) {
       for (int pixel = row * this.preview[index].width; pixel < (row+1) * this.preview[index].width; pixel++) {
         if (red(this.preview[index].pixels[pixel]) == 255) {
@@ -263,7 +267,6 @@ public class sceneContainer {
         }
       }
     }
-    println(System.currentTimeMillis() - temp);
   }
 
   public void processSortVertical() {
@@ -498,15 +501,19 @@ public class sceneContainer {
     this.format = mode;
   }
 
+  public void pauseGIF() {
+    this.isPaused = !isPaused;
+  }
+
   public void saveImage(String path) {
     //this.image[0].save("Results/"+path);
     if (this.isGif) {
       if (this.format == saveFormat.GIF) {
         GifMaker gifExport = new GifMaker(this.parent, "Results/"+path+"."+format.name().toLowerCase());
         gifExport.setRepeat(0);
-        gifExport.setDelay(this.averageGIFDelay);
         //gifExport.setTransparent(0, 0, 0);
         for (int i = 0; i<image.length; i++) {
+          gifExport.setDelay(delays[i]);
           gifExport.addFrame(this.image[i]);
         }
         gifExport.finish();

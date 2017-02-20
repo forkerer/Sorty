@@ -3,7 +3,7 @@ public class selection {
   private int maxX;
   private int minY;
   private int maxY;
-  ArrayList<PVector> polygon;
+  private ArrayList<PVector> polygon;
 
   selection() {
     this.minX = 10000000; //
