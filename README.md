@@ -1,5 +1,5 @@
 # Sorty
-Simple, fast and powerful pixel sorter written in processing.
+Simple, fast and powerful pixel sorter written in processing
 
 ### Features
 * Live preview of what will be sorted
@@ -56,3 +56,7 @@ Hard way:
 ### Used libraries
 - [ControlP5](http://www.sojamo.de/libraries/controlP5/)
 - [GifAnimation](https://github.com/01010101/GifAnimation)
+
+### Donate
+If you found this tool useful/interesting please consider donating!  
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XB6XK8FEF9FPA)
