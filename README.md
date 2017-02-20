@@ -12,7 +12,8 @@ Simple, fast and powerful pixel sorter written in processing
 * Intuitive user interface
 
 ### Installation
-Easy way: Download ready to use version of Sorty here (You may need to download JAVA to use it): 
+Easy way:  
+Download ready to use version of Sorty here (You may need to download JAVA to use it): 
 	[link](https://mega.nz/#!qUhDUSQA!9POsYbLgDZOqH14x5-hp_zABFRrr8KUQ3g1OsB-VmK0)
 
 Hard way:  
