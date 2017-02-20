@@ -12,11 +12,15 @@ Simple, fast and powerful pixel sorter written in processing
 * Intuitive user interface
 
 ### Installation
-0. add ControlP5 (http://www.sojamo.de/libraries/controlP5/) and modified GifAnimation (data folder) libraries to your Processing libraries.
-1. Build the launcher( Launcher.pde, startMenu.pde) as .exe.
-2. Build the Main program ( All the files in data folder) as .exe.
-3. Put compiled Main program along with it's lib and data folders into compiled launcher data folder
-4. To start program just start Launcher.exe
+Easy way: Download ready to use version of Sorty here (You may need to download JAVA to use it): 
+	[link](https://mega.nz/#!qUhDUSQA!9POsYbLgDZOqH14x5-hp_zABFRrr8KUQ3g1OsB-VmK0)
+
+Hard way:  
+	1.  add ControlP5 (http://www.sojamo.de/libraries/controlP5/) and modified GifAnimation (library folder) libraries to your Processing libraries.  
+	2.  Build the launcher( Launcher.pde, startMenu.pde) as .exe.  
+	3.  Build the Main program ( All the files in data folder) as .exe.  
+	4.  Put compiled Main program along with it's lib and data folders into compiled launcher data folder  
+	5.  To start program just start Launcher.exe
 
 ### Usage
 
