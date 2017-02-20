@@ -20,14 +20,16 @@ Simple, fast and powerful pixel sorter written in processing
 
 ### Usage
 
-1. Keybinds:
+1. Start launcher.exe and select image, the main program should start right after that.
+
+2. Keybinds:
 	*  'O' - undo action
 	*  'P' - redo action
 	*  'H' - sort horizontally
 	*  'V' - sort vertically
 	*  'M' - show/hide menu
 	*  'R' - reset
-2. UI:
+3. UI:
 	*  lowerLimit - Dictates lower limit of what will be sorted.
 	*  upperLimit - Dictates upper limit of what will be sorted.
 	*  preview - Shows which areas will be sorted ( white will be sorted, black not ).
@@ -44,3 +46,9 @@ Simple, fast and powerful pixel sorter written in processing
 	* undo - Undo last action (sort/reset)
 	* filename and format - Dictates what will be the filename and format of saved images (IT WILL OVERWRITE A FILE IF IT EXISTS IN THE RESULTS DIRECTORY)
 	* save - Saves the image.
+	* (Gif only) step back/forward - Steps one frame back/forward.
+	* (GIf only) pause - pauses/resumes the Gif.
+
+### Used libraries
+- [ControlP5](http://www.sojamo.de/libraries/controlP5/)
+- [GifAnimation](https://github.com/01010101/GifAnimation)
