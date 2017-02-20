@@ -10,18 +10,18 @@ public class gifControl {
     cp5 = control;
     
     this.stepBack = cp5.addButton("stepBack")
-      .setPosition(width-210, 10)
-      .setSize(90, 50)
+      .setPosition(width-(210*guiScale), 10*guiScale)
+      .setSize((int)(90*guiScale), (int)(50*guiScale))
       .plugTo(this);
       
    this.stepForward = cp5.addButton("stepForward")
-      .setPosition(width-100, 10)
-      .setSize(90, 50)
+      .setPosition(width-(100*guiScale), 10*guiScale)
+      .setSize((int)(90*guiScale), (int)(50*guiScale))
       .plugTo(this);
       
    this.pause = cp5.addButton("pause")
-      .setPosition(width-210, 85)
-      .setSize(90, 50)
+      .setPosition(width-(210*guiScale), 85*guiScale)
+      .setSize((int)(90*guiScale), (int)(50*guiScale))
       .setSwitch(true)
       .plugTo(this);
   }

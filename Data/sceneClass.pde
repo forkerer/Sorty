@@ -93,6 +93,7 @@ public class sceneContainer {
   ////////////////////////////////////// DISPLAY THIS WHOLE THING //////////////////////////////////////
   public void display() {
     fill(0);
+    noStroke();
     beginShape();
 
     if (showPreview == true) { 

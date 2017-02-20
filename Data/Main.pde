@@ -15,6 +15,7 @@ programState state;
 PImage[] selectedImages;
 String selectedPath = "data\\loadingException.png";
 PImage logo;
+public float guiScale;
 
 void settings() {
   fullScreen(P2D);
@@ -23,6 +24,7 @@ void settings() {
 void setup() {
   surface.setAlwaysOnTop(false);
   loadingFinished = false;
+  guiScale = (float)height/(float)1080;
   textSize(32);
   frameRate(60);
   state = programState.LOADING;
@@ -66,18 +68,18 @@ void draw() {
       fill(#02182F, 210);
       beginShape();
       vertex(0, 0);
-      vertex(220, 0);
-      vertex(220, height);
+      vertex(220*guiScale, 0);
+      vertex(220*guiScale, height);
       vertex(0, height);
       endShape();
     }
     if (gifGui != null && gifGui.showMenu) {
       fill(#02182F, 210);
       beginShape();
-      vertex(width-220, 0);
+      vertex(width-(220*guiScale), 0);
       vertex(width, 0);
       vertex(width, height);
-      vertex(width - 220, height);
+      vertex(width - (220*guiScale), height);
       endShape();
     }
     Scene.selectedArea.display();
@@ -105,6 +107,7 @@ public void keyPressed() {
   if ((key == 'o' || key =='O' ) && !Control.saveName.isFocus()) {
     Scene.undoAction();
   }
+  
   if ((key == 'p' || key =='P' ) && !Control.saveName.isFocus()) {
     Scene.redoAction();
   }
@@ -135,10 +138,6 @@ public void keyPressed() {
   if ((key == 'r' || key =='R' ) && !Control.saveName.isFocus()) {
     Scene.processReset();
   }
-
-  if ((key == 's' || key =='S' ) && !Control.saveName.isFocus()) {
-    Scene.saveImage("Results/after.jpg");
-  }
 }
 
 void handleLoading() {
@@ -151,6 +150,10 @@ void handleLoading() {
     Gif selectedGif =  new Gif(this, selectedPath);
     selectedImages = selectedGif.getPImages();
     Delays = selectedGif.getDelaysArray();
+    if (gifGui != null) {
+      gifGui.cp5.setVisible(true);
+      gifGui.showMenu = true;
+    }
   } else {
     selectedImages = new PImage[1];
     selectedImages[0] = loadImage(selectedPath);
@@ -158,9 +161,5 @@ void handleLoading() {
   Scene = new sceneContainer(selectedImages, 0, 1, checkMode.AVERAGE, this, Delays);
   Control.showMenu = true;
   Control.cp5.setVisible(true);
-  if (gifGui != null) {
-      gifGui.cp5.setVisible(true);
-      gifGui.showMenu = true;
-    }
   state = programState.READYTODISPLAY;
 }
