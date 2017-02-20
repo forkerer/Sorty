@@ -62,7 +62,7 @@ void draw() {
   case READYTODISPLAY:
     background(#02182F);
     Scene.display();
-    stroke(#000000);
+    noStroke();
 
     if (Control != null && Control.showMenu) {
       fill(#02182F, 210);
@@ -82,6 +82,7 @@ void draw() {
       vertex(width - (220*guiScale), height);
       endShape();
     }
+    stroke(#000000);
     Scene.selectedArea.display();
   }
 }
