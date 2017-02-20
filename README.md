@@ -6,7 +6,7 @@ Simple, fast and powerful pixel sorter written in processing
 * GIF support
 * Multiple availible comparision modes (Average, luma, hue, saturation, red, blue, green)
 * 10 steps undo/redo history for images, 1 step undo/redo history for GIF's
-* Working selection
+* Working selection tool (not perfect)
 * JPG, PNG, TIF, TGA support for images
 * Horizontal and vertical sorting modes
 * Intuitive user interface
