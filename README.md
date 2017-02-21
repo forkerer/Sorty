@@ -12,7 +12,7 @@ Simple, fast and powerful pixel sorter written in processing
 * Intuitive user interface
 
 ### Images of the sorter:  
-[Imgur ling](http://imgur.com/a/TMP3z]
+	[Imgur link](http://imgur.com/a/TMP3z]
 
 ### Installation
 Easy way:  
