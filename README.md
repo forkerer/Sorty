@@ -17,7 +17,7 @@ Simple, fast and powerful pixel sorter written in processing
 ### Installation
 Easy way:  
 Download ready to use version of Sorty here (You may need to download JAVA to use it): 
-	[link](https://mega.nz/#!qUhDUSQA!9POsYbLgDZOqH14x5-hp_zABFRrr8KUQ3g1OsB-VmK0)
+	[link](http://www.mediafire.com/file/qikqylzhehdp6dx/Sorty.7z)
 
 Hard way:  
 	1.  add ControlP5 (http://www.sojamo.de/libraries/controlP5/) and modified GifAnimation (library folder) libraries to your Processing libraries.  
