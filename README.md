@@ -50,7 +50,7 @@ Hard way:
 	* reset - Resets the area to the state from right after import. (IT WILL ONLY RESET THE AREA THAT SHOWS AS WHITE ON THE PREVIEW, SET LOWERLIMIT TO 0 AND UPPERLIMIT TO 1 TO RESET EVERYTHING).
 	* undo - Undo last action (sort/reset)
 	* filename and format - Dictates what will be the filename and format of saved images (IT WILL OVERWRITE A FILE IF IT EXISTS IN THE RESULTS DIRECTORY)
-	* save - Saves the image.
+	* save - Saves the image. (The image will be saved in data\Results directory)
 	* (Gif only) step back/forward - Steps one frame back/forward.
 	* (GIf only) pause - pauses/resumes the Gif.
 
