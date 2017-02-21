@@ -11,6 +11,9 @@ Simple, fast and powerful pixel sorter written in processing
 * Horizontal and vertical sorting modes
 * Intuitive user interface
 
+### Images of the sorter:  
+[Imgur ling](http://imgur.com/a/TMP3z]
+
 ### Installation
 Easy way:  
 Download ready to use version of Sorty here (You may need to download JAVA to use it): 
