@@ -11,8 +11,8 @@ Simple, fast and powerful pixel sorter written in processing
 * Horizontal and vertical sorting modes
 * Intuitive user interface
 
-### Images of the sorter:  
-	[Imgur link](http://imgur.com/a/TMP3z]
+### Images of the sorter:
+[Imgur link](http://imgur.com/a/TMP3z)
 
 ### Installation
 Easy way:  
